@@ -1,0 +1,13 @@
+Package: changepoints
+Type: Package
+Title: Time Series Approximation Via Smallest Valid Partitioning
+Version: 1.0
+Encoding: UTF-8
+Date: 2025-05-15
+Authors@R: person("Alexandre", "Combeau", role = c("aut", "cre"), email =
+        "alexandre.combeau.77@gmail.com")
+Description: Plusieurs algo (OP, PELT, SVP,...)
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.14)
+LinkingTo: Rcpp
+RoxygenNote: 7.3.2

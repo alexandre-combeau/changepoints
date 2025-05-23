@@ -1,0 +1,219 @@
+---
+title: "Quelques tests"
+author: "Alexandre Combeau"
+date: "2025-05-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+devtools::install_github("vrunge/dust")
+#devtools::install_github("alexandre-combeau/changepoints")
+library(dust)
+library(changepoints)
+```
+
+```{r OP_R}
+n <- 100
+gap <- 0.5
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                      parameters = c(0,gap,0,gap,0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+
+# OP Algorithm
+OP_R <- optimal_partitioning(x, best_beta)
+
+# Visualisation
+cpts <- OP_R$changepoints
+plot(x, type = "o", main = "Optimal Partitioning",
+     ylab = "Values", xlab = "Time", col = "blue")
+abline(v = cpts, col = "red", lwd = 2, lty = 2)
+cpts2 <- c(0,cpts)
+for (i in 1:(length(cpts2) - 1))
+{
+  segment_mean <- mean(x[(cpts2[i] + 1):cpts2[i + 1]])
+  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
+           x1 = cpts2[i+1], y1 = segment_mean,
+           col = "green", lwd = 2)
+}
+```
+
+```{r OP_CPP}
+n <- 100
+gap <- 0.5
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                      parameters = c(0,gap,0,gap,0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+
+# OP Algorithm
+OP_CPP <- rcpp_optimal_partitioning(x, best_beta)
+
+# Visualisation
+cpts <- OP_CPP$changepoints
+plot(x, type = "o", main = "Optimal Partitioning",
+     ylab = "Values", xlab = "Time", col = "blue")
+abline(v = cpts, col = "red", lwd = 2, lty = 2)
+cpts2 <- c(0,cpts)
+for (i in 1:(length(cpts2) - 1))
+{
+  segment_mean <- mean(x[(cpts2[i] + 1):cpts2[i + 1]])
+  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
+           x1 = cpts2[i+1], y1 = segment_mean,
+           col = "green", lwd = 2)
+}
+```
+
+```{r Time_Exec_OP}
+start <- 100
+end <- 500
+pas <- 50
+n_vals <- seq(from = start, to = end, by = pas)
+gap <- 0.5
+temps_R <- numeric(length(n_vals))
+temps_Rcpp <- numeric(length(n_vals))
+length_data <- integer(length(n_vals))
+
+for (i in 1:length(n_vals))
+{
+  n <- n_vals[i]
+  x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                        parameters = c(0,gap,0,gap,0),
+                        sdNoise = 0.2,
+                        type = "gauss")
+  length_data[i] <- length(x)
+  print(length(x))
+  beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+  
+  # Temps code R
+  t0 <- Sys.time()
+  optimal_partitioning(x, beta)
+  t1 <- Sys.time()
+  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  
+  # Temps code C++
+  t0 <- Sys.time()
+  rcpp_optimal_partitioning(x, beta)
+  t1 <- Sys.time()
+  temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+}
+
+plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+     xlab = "n : length of data", ylab = "Time (s)",
+     main = "Time Exec OP", ylim = c(0, max(max(temps_Rcpp),max(temps_R)) * 1.1))
+lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
+legend("topleft",
+     legend = c("R", "C++"),
+     col = c("red", "blue"),
+     pch = c(16, 17),
+     lty = c(NA, NA),
+     lwd = c(NA, NA))
+grid()
+print(temps_R[length(temps_R)] / temps_Rcpp[length(temps_Rcpp)])
+```
+```{r PELT_R}
+n <- 100
+gap <- 0.5
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                      parameters = c(0,gap,0,gap,0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+
+# OP Algorithm
+PELT_R <- pelt(x, best_beta, 1)
+
+# Visualisation
+cpts <- PELT_R$changepoints
+plot(x, type = "o", main = "PELT",
+     ylab = "Values", xlab = "Time", col = "blue")
+abline(v = cpts, col = "red", lwd = 2, lty = 2)
+
+cpts2 <- c(0,cpts)
+for (i in 1:(length(cpts2) - 1))
+{
+  segment_mean <- mean(x[(cpts2[i] + 1):cpts2[i + 1]])
+  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
+           x1 = cpts2[i+1], y1 = segment_mean,
+           col = "green", lwd = 2)
+}
+```
+
+```{r PELT_CPP}
+n <- 100
+gap <- 0.5
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                      parameters = c(0,gap,0,gap,0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+
+# OP Algorithm
+PELT_CPP <- rcpp_pelt(x, best_beta, 1)
+
+# Visualisation
+cpts <- PELT_CPP$changepoints
+plot(x, type = "o", main = "PELT",
+     ylab = "Values", xlab = "Time", col = "blue")
+abline(v = cpts, col = "red", lwd = 2, lty = 2)
+cpts2 <- c(0,cpts)
+for (i in 1:(length(cpts2) - 1))
+{
+  segment_mean <- mean(x[(cpts2[i] + 1):cpts2[i + 1]])
+  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
+           x1 = cpts2[i+1], y1 = segment_mean,
+           col = "green", lwd = 2)
+}
+```
+
+```{r Time_Exec_PELT}
+start <- 100
+end <- 500
+pas <- 50
+n_vals <- seq(from = start, to = end, by = pas)
+gap <- 0.5
+temps_R <- numeric(length(n_vals))
+temps_Rcpp <- numeric(length(n_vals))
+length_data <- integer(length(n_vals))
+
+for (i in 1:length(n_vals))
+{
+  n <- n_vals[i]
+  x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                        parameters = c(0,gap,0,gap,0),
+                        sdNoise = 0.2,
+                        type = "gauss")
+  length_data[i] <- length(x)
+  print(length(x))
+  beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+  
+  # Temps code R
+  t0 <- Sys.time()
+  pelt(x, beta, 1)
+  t1 <- Sys.time()
+  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  
+  # Temps code C++
+  t0 <- Sys.time()
+  rcpp_pelt(x, beta, 1)
+  t1 <- Sys.time()
+  temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+}
+
+plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+     xlab = "n : length of data", ylab = "Time (s)",
+     main = "Time Exec PELT", ylim = c(0, max(max(temps_Rcpp),max(temps_R)) * 1.1))
+lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
+legend("topleft",
+     legend = c("R", "C++"),
+     col = c("red", "blue"),
+     pch = c(16, 17),
+     lty = c(NA, NA),
+     lwd = c(NA, NA))
+grid()
+print(temps_R[length(temps_R)] / temps_Rcpp[length(temps_Rcpp)])
+```
+
