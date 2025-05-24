@@ -9,7 +9,7 @@
 #' @param x A numeric vector representing the data to segment.
 #' @param penalty A double value representing the penalty term for adding a new segment.
 #' @param minseglen The minimum length of the segment
-#' @return An integer vector of indices representing the optimal breakpoints.
+#' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 #' @examples
 #' x <- c(1, 2, 3, 10, 10, 10, 20, 20, 20, 5, 5, 5)
 #' penalty <- 5
@@ -24,7 +24,6 @@ pelt <- function(x, penalty, minseglen = 1) {
   S2 <- c(0, cumsum(x^2))
   
   Q <- rep(Inf, n + 1)
-  total_cost <- Inf
   Q[1] <- -penalty
   cp <- integer(n + 1)
   R <- 1
@@ -34,6 +33,7 @@ pelt <- function(x, penalty, minseglen = 1) {
   {
     t1 <- t + 1
     costs <- rep(Inf, length(R))
+    best_cost <- Inf
     
     for (i in seq_along(R))
     {
@@ -43,17 +43,16 @@ pelt <- function(x, penalty, minseglen = 1) {
       {
         gaussian_cost <- (S2[t1] - S2[s]) - ((S1[t1] - S1[s])^2) / len
         costs[i] <- Q[s] + gaussian_cost + penalty
-        cost_best <- costs[i]
-        if (cost_best < total_cost)
+        if (costs[i] < best_cost)
         {
-          total_cost <- cost_best
+          best_cost <- costs[i]
           arg_min <- s
         }
       }
     }
     
-    Q[t1]       <- costs[arg_min]
-    cp[t1]      <- R[arg_min]
+    Q[t1]       <- best_cost
+    cp[t1]      <- arg_min
     length_R[t] <- length(R)
     
     # Pruning

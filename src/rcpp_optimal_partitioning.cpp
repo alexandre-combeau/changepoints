@@ -11,7 +11,7 @@ using namespace Rcpp;
 //' @description This function computes the optimal partitioning of a given vector x with a given penalty term beta. It finds the optimal changepoints that minimize the cost function using dynamic programming.
 //' @param x A numeric vector representing the data to segment.
 //' @param beta A double value representing the penalty term for adding a new segment.
-//' @return A vector of indices representing the optimal breakpoints.
+//' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 //' @export
 // [[Rcpp::export]]
 List rcpp_optimal_partitioning(NumericVector x, double beta)

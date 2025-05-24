@@ -14,7 +14,7 @@ pelt(x, penalty, minseglen = 1)
 \item{minseglen}{The minimum length of the segment}
 }
 \value{
-An integer vector of indices representing the optimal breakpoints.
+A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 }
 \description{
 This function implements the PELT (Pruned Exact Linear Time) method in pure R.
