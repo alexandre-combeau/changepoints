@@ -12,6 +12,20 @@ library(dust)
 library(changepoints)
 ```
 
+```{r}
+n <- 100
+gap <- 0.5
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                      parameters = c(0,gap,0,gap,0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+OP_R <- optimal_partitioning(x, best_beta)
+PELT_R <- pelt(x, best_beta)
+
+```
+
+
 # Optimal Partitioning with R
 
 ```{r OP_R}
@@ -183,8 +197,8 @@ for (i in 1:(length(cpts2) - 1))
 # Time execution between PELT (R) and PELT (Rcpp)
 
 ```{r Time_Exec_PELT}
-start <- 500
-end <- 1000
+start <- 50
+end <- 500
 pas <- 50
 n_vals <- seq(from = start, to = end, by = pas)
 gap <- 0.5
