@@ -15,7 +15,7 @@ optimal_partitioning <- function(x, beta)
   
   # Initialize the costs and the changepoints
   Q <- rep(Inf, n + 1)
-  Q[1] <- 0
+  Q[1] <- -beta
   lastChange <- rep(0, n + 1)
   
   # Cumulative sum for optimized calculations
@@ -28,7 +28,7 @@ optimal_partitioning <- function(x, beta)
     for (s in 0:(t - 1))
     {
       # Segment cost [s+1, t]
-      segment_cost <- (cs_x2[t+1]-cs_x2[s+1])-(cs_x[t+1]-cs_x[s+1])^2/(t-s)
+      segment_cost <- (cs_x2[t+1]-cs_x2[s+1]) - (cs_x[t+1]-cs_x[s+1])^2 / (t-s)
       
       # Total cost with penalisation beta
       cost <- Q[s + 1] + segment_cost + beta

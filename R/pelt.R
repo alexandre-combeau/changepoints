@@ -59,6 +59,7 @@ pelt <- function(x, penalty, minseglen = 1) {
     R <- c(R[costs <= Q[t1] + penalty], t1)
   }
   
+  
   # Backtracking
   changepoints <- integer(0)
   i <- n + 1
@@ -70,7 +71,7 @@ pelt <- function(x, penalty, minseglen = 1) {
   
   changepoints = c(changepoints, n)
   return(list(changepoints = changepoints,
-              lastIndexSet = rev(R),
+              lastIndexSet = rev(R)[-1],
               nb = length_R,
-              costQ = Q))
+              costQ = Q[-1]))
 }

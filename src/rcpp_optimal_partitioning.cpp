@@ -20,7 +20,7 @@ List rcpp_optimal_partitioning(NumericVector x, double beta)
   
   // Initialisation
   std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
-  Q[0] = 0;
+  Q[0] = -beta;
   std::vector<int> lastChange(n + 1, 0);
   std::vector<int> R(n);
   
@@ -74,5 +74,5 @@ List rcpp_optimal_partitioning(NumericVector x, double beta)
     Named("changepoints") = wrap(optimal_cpts),
     Named("lastIndexSet") = wrap(last_R),
     Named("nb") = wrap(R),
-    Named("costQ") = wrap(Q));
+    Named("costQ") = std::vector<double>(Q.begin() + 1, Q.end()));
 }

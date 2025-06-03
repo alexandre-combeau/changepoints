@@ -9,22 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 devtools::install_github("vrunge/dust")
 library(dust)
-library(changepoints)
 ```
-
-```{r}
-n <- 100
-gap <- 0.5
-x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
-                      parameters = c(0,gap,0,gap,0),
-                      sdNoise = 0.2,
-                      type = "gauss")
-best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
-OP_R <- optimal_partitioning(x, best_beta)
-PELT_R <- pelt(x, best_beta)
-
-```
-
 
 # Optimal Partitioning with R
 
@@ -33,14 +18,15 @@ n <- 100
 gap <- 0.5
 x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
-                      sdNoise = 0.2,
+                      sdNoise = 1,
                       type = "gauss")
-best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+best_beta <- 2 * log(length(x))
 
 # OP Algorithm
 OP_R <- optimal_partitioning(x, best_beta)
+plot(OP_R$nb)
 
-# Visualisation
+# Visualization
 cpts <- OP_R$changepoints
 plot(x, type = "o", main = "Optimal Partitioning avec R",
      ylab = "Values", xlab = "Time", col = "blue")
@@ -62,14 +48,15 @@ n <- 100
 gap <- 0.5
 x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
-                      sdNoise = 0.2,
+                      sdNoise = 1,
                       type = "gauss")
-best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+best_beta <- 2 * log(length(x))
 
 # OP Algorithm
 OP_CPP <- rcpp_optimal_partitioning(x, best_beta)
+plot(OP_CPP$nb)
 
-# Visualisation
+# Visualization
 cpts <- OP_CPP$changepoints
 plot(x, type = "o", main = "Optimal Partitioning avec Rcpp",
      ylab = "Values", xlab = "Time", col = "blue")
@@ -101,11 +88,11 @@ for (i in 1:length(n_vals))
   n <- n_vals[i]
   x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                         parameters = c(0,gap,0,gap,0),
-                        sdNoise = 0.2,
+                        sdNoise = 1,
                         type = "gauss")
   length_data[i] <- length(x)
   print(length(x))
-  beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+  beta <- 2 * log(length(x))
   
   # Temps code R
   t0 <- Sys.time()
@@ -146,10 +133,13 @@ x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       type = "gauss")
 best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
 
-# OP Algorithm
+# PELT Algorithm
 PELT_R <- pelt(x, best_beta, 1)
+PELT_CPP <- rcpp_pelt(x, best_beta, 1)
+plot(PELT_R$nb)
+plot(PELT_CPP$nb)
 
-# Visualisation
+# Visualization
 cpts <- PELT_R$changepoints
 plot(x, type = "o", main = "PELT avec R",
      ylab = "Values", xlab = "Time", col = "blue")
@@ -174,12 +164,12 @@ x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
                       sdNoise = 0.2,
                       type = "gauss")
-best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+best_beta <- 2 * log(length(x))
 
-# OP Algorithm
+# PELT Algorithm
 PELT_CPP <- rcpp_pelt(x, best_beta, 1)
 
-# Visualisation
+# Visualization
 cpts <- PELT_CPP$changepoints
 plot(x, type = "o", main = "PELT avec Rcpp",
      ylab = "Values", xlab = "Time", col = "blue")
@@ -215,7 +205,7 @@ for (i in 1:length(n_vals))
                         type = "gauss")
   length_data[i] <- length(x)
   print(length(x))
-  beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+  beta <- 2 * log(length(x))
   
   # Temps code R
   t0 <- Sys.time()
@@ -242,4 +232,42 @@ legend("topleft",
      lwd = c(NA, NA))
 grid()
 temps_R[length(temps_R)] / temps_Rcpp[length(temps_Rcpp)]
+```
+
+
+```{r, include=FALSE}
+library(changepoints)
+
+n <- 100
+x <- dataGenerator_1D(chpts = c(2, 4, 6) * n,
+                      parameters = c(5,10, 2),
+                      sdNoise = 1,
+                      type = "gauss")
+best_beta <- 2*log(n)
+plot(x)
+OP_R <- optimal_partitioning(x, best_beta)
+d_OP <- OP_R_1D(x, penalty = best_beta/2, type = "gauss")
+
+
+all(OP_R$changepoints == d_OP$changepoints)
+d_OP$costQ
+
+plot(OP_R$costQ-(2*d_OP$costQ + cumsum(x^2) + best_beta))
+OP_R$costQ - (2*d_OP$costQ + cumsum(x^2) + best_beta)
+
+
+######################## TO DO ########################
+
+PELT_1 <- pelt(x, best_beta)
+PELT_2 <- dust.1D(x, penalty = best_beta/2, method = "detIndex_Eval5", model = "gauss")
+
+
+plot(PELT_1$costQ[-1]-(2*PELT_2$costQ + cumsum(x^2)))
+PELT_1$costQ[-1]- (2*PELT_2$costQ + cumsum(x^2))
+
+all(PELT_1$lastIndexSet - 1 == PELT_2$lastIndexSet)
+
+PELT_1$lastIndexSet #### PB DECALLAGE DE 1 A FAIRE
+PELT_2$lastIndexSet
+
 ```

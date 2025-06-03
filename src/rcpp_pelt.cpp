@@ -97,5 +97,5 @@ List rcpp_pelt(NumericVector x, double penalty, int minseglen = 1)
     Named("changepoints") = wrap(changepoints),
     Named("lastIndexSet") = wrap(R),
     Named("nb") = wrap(length_R),
-    Named("costQ") = wrap(Q));
+    Named("costQ") = wrap(std::vector<double>(Q.begin() + 1, Q.end())));
 }
