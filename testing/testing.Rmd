@@ -24,7 +24,7 @@ best_beta <- 2 * log(length(x))
 
 # OP Algorithm
 OP_R <- optimal_partitioning(x, best_beta)
-plot(OP_R$nb)
+plot(OP_R$costQ)
 
 # Visualization
 cpts <- OP_R$changepoints
@@ -54,7 +54,7 @@ best_beta <- 2 * log(length(x))
 
 # OP Algorithm
 OP_CPP <- rcpp_optimal_partitioning(x, best_beta)
-plot(OP_CPP$nb)
+OP_CPP$costQ
 
 # Visualization
 cpts <- OP_CPP$changepoints
@@ -131,13 +131,11 @@ x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
                       sdNoise = 0.2,
                       type = "gauss")
-best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+# best_beta <- 2 * sdDiff(x, "HALL")^2 * log(length(x))
+best_beta <- 2 * log(length(x))
 
 # PELT Algorithm
 PELT_R <- pelt(x, best_beta, 1)
-PELT_CPP <- rcpp_pelt(x, best_beta, 1)
-plot(PELT_R$nb)
-plot(PELT_CPP$nb)
 
 # Visualization
 cpts <- PELT_R$changepoints
@@ -271,3 +269,39 @@ PELT_1$lastIndexSet #### PB DECALLAGE DE 1 A FAIRE
 PELT_2$lastIndexSet
 
 ```
+
+# Smallest Valid Partitioning
+
+```{r SVP}
+n <- 10
+gap <- 2
+x <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20) * n,
+                      parameters = c(0, gap, 0, gap, 0),
+                      sdNoise = 0.2,
+                      type = "gauss")
+#x <- c(rnorm(50, 0, 0.3), rnorm(50, 3, 0.3))
+
+gamma <- 1/10
+
+res <- smallest_valid_partitioning(x, gamma)
+res$changepoints
+OP_R <- optimal_partitioning(x, gamma)
+OP_R$changepoints
+
+# Visualization
+cpts <- res$changepoints
+plot(x, type = "o", main = "SVP",
+     ylab = "Values", xlab = "Time", col = "blue")
+abline(v = cpts, col = "red", lwd = 2, lty = 2)
+cpts2 <- c(0,cpts)
+for (i in 1:(length(cpts2) - 1))
+{
+  segment_mean <- mean(x[(cpts2[i] + 1):cpts2[i + 1]])
+  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
+           x1 = cpts2[i+1], y1 = segment_mean,
+           col = "green", lwd = 2)
+}
+
+```
+
+
