@@ -90,7 +90,7 @@ valid_Range_slack <- function(y, gamma)
 #' @export
 valid_Quantile <- function(y, gamma)
 {
-  quantile(y, probs = 0.95) - quantile(y, probs = 0.05) <= gamma
+  unname(quantile(y, probs = 0.95) - quantile(y, probs = 0.05)) <= gamma
 }
 
 ################################################
@@ -166,7 +166,7 @@ smallest_valid_partitioning_VR <- function(y, gamma, test = valid_OP, pruning = 
   colnames(R) <- c("Q", "K", "s")
   
   # Condition initiale t=0
-  R[1, ] <- c(-gamma, 0, 0)
+  R[1, ] <- c(0, 0, 0)
   
   nb <- integer(n)    # nb de candidats examinés à chaque t
   costQ <- numeric(n) # Q_t final pour chaque t
