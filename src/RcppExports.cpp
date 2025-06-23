@@ -10,6 +10,20 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// rcpp_smallest_valid_partitioning_VR
+List rcpp_smallest_valid_partitioning_VR(NumericVector y, double gamma, Function test, bool pruning);
+RcppExport SEXP _changepoints_rcpp_smallest_valid_partitioning_VR(SEXP ySEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP pruningSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< Function >::type test(testSEXP);
+    Rcpp::traits::input_parameter< bool >::type pruning(pruningSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_smallest_valid_partitioning_VR(y, gamma, test, pruning));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_optimal_partitioning
 List rcpp_optimal_partitioning(NumericVector x, double beta);
 RcppExport SEXP _changepoints_rcpp_optimal_partitioning(SEXP xSEXP, SEXP betaSEXP) {
@@ -37,6 +51,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_changepoints_rcpp_smallest_valid_partitioning_VR", (DL_FUNC) &_changepoints_rcpp_smallest_valid_partitioning_VR, 4},
     {"_changepoints_rcpp_optimal_partitioning", (DL_FUNC) &_changepoints_rcpp_optimal_partitioning, 2},
     {"_changepoints_rcpp_pelt", (DL_FUNC) &_changepoints_rcpp_pelt, 3},
     {NULL, NULL, 0}
