@@ -20,3 +20,10 @@ This function computes the optimal partitioning of a given vector x with a given
 \details{
 Optimal Partitioning Method using R
 }
+\examples{
+n <- 100
+data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
+OP_R <- optimal_partitioning(data, 2 * log(length(data)))
+plot_segmentation(data, OP_R$changepoints, title = "OP Segmentation")
+
+}

@@ -18,7 +18,12 @@ smallest_valid_partitioning_VR(
 
 \item{test}{A function of the form `function(y, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.}
 
-\item{pruning}{Logical indicating whether to apply pruning to the candidate set during the dynamic programming. Default is TRUE.}
+\item{all_full_validity}{Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
+at each time step, it tests whether the candidate segment \code{y[(s+1):t]} is valid using the 
+user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed 
+(pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid 
+segment extensions. If FALSE, the algorithm skips this validation and considers all candidate 
+segments without checking their validity (which can be faster but may return invalid segments).}
 }
 \value{
 A list with the following components:
