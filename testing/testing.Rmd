@@ -59,7 +59,7 @@ cat("Changepoints :", OP_Rcpp$changepoints)
 # Time execution between OP (R) and OP (Rcpp)
 
 ```{r Exec_Time_OP}
-n_vals <- 10^(seq(1,2,length.out = 20))
+n_vals <- 10^(seq(1, 1.7, length.out = 100))
 gap <- 0.5
 temps_R <- numeric(length(n_vals))
 temps_Rcpp <- numeric(length(n_vals))
@@ -92,7 +92,6 @@ for (i in 1:length(n_vals))
 lm_R    <- lm(log(temps_R) ~ log(length_data))
 lm_Rcpp <- lm(log(temps_Rcpp) ~ log(length_data))
 
-
 plot(length_data, temps_R, type = "b", pch = 16, col = "red",
      log = "xy",
      xlab = "log(length_data)",
@@ -102,22 +101,24 @@ plot(length_data, temps_R, type = "b", pch = 16, col = "red",
      xlim = range(length_data, finite = TRUE))
 lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
 
-x_pred <- seq(min(length_data), max(length_data), length.out = 200)
+# Linear prediction for R code
+y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
+lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
 
-# Prédiction linéaire pour le code R
-y_pred_R <- exp(coef(lm_R)[1]) * x_pred ^ coef(lm_R)[2]
-lines(x_pred, y_pred_R, col = "black", lty = 2, lwd = 2)
+# Linear prediction for Rcpp code
+y_pred_Rcpp <- exp(coef(lm_Rcpp)[1]) * length_data ^ coef(lm_Rcpp)[2]
+lines(length_data, y_pred_Rcpp, col = "green", lty = 2, lwd = 2)
 
-# Prédiction linéaire pour le code Rcpp
-y_pred_Rcpp <- exp(coef(lm_Rcpp)[1]) * x_pred ^ coef(lm_Rcpp)[2]
-lines(x_pred, y_pred_Rcpp, col = "green", lty = 2, lwd = 2)
-
+# Expected slope O(n^2)
 middle <- exp((coef(lm_R)[1] + coef(lm_Rcpp)[1]) / 2)
-lines(x_pred, middle * x_pred ^ 2, col = "purple", lty = 2, lwd = 2)
+y_theorical <- middle * length_data ^ 2
+lines(length_data, y_theorical, col = "purple", lty = 2, lwd = 2)
 
 legend("topleft",
-       legend = c(paste("R, coeff :", round(coef(lm_R)[2], 2)), paste("Rcpp, coeff :", round(coef(lm_Rcpp)[2], 2))),
-       col    = c("red", "blue"),
+       legend = c(paste("R slope :", round(coef(lm_R)[2], 2)),
+                  paste("Rcpp slope :", round(coef(lm_Rcpp)[2], 2)),
+                  paste("Expected slope :", 2)),
+       col    = c("red", "blue", "purpwle"),
        pch    = c(16, 17),
        lty    = c(1, 1))
 grid()
