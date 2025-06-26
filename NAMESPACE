@@ -1,3 +1,5 @@
 useDynLib(changepoints, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
+importFrom("graphics", "abline", "segments")
+importFrom("stats", "quantile", "rbinom", "rexp", "rgeom", "rnbinom", "rnorm", "rpois")

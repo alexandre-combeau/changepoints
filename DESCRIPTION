@@ -9,5 +9,11 @@ Authors@R: person("Alexandre", "Combeau", role = c("aut", "cre"), email =
 Description: Provides a flexible framework for segmenting univariate time series using custom validation rules such as variance threshold, range, quantile range, or external changepoint detection like FOCuS. The main algorithm implements a dynamic programming approach with optional pruning to find the smallest number of valid segments, while minimizing a quadratic cost.
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.14)
+Suggests: 
+    devtools,
+    testthat (>= 3.0.0),
+    rmarkdown,
+    ggplot2,
+    FOCuS
 LinkingTo: Rcpp
 RoxygenNote: 7.3.2
