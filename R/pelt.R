@@ -6,17 +6,22 @@
 #' @title PELT Method
 #' @description This function implements the PELT (Pruned Exact Linear Time) method in pure R.
 #' It computes the optimal partitioning of a given numeric vector `x` using a penalized cost function.
+#' 
 #' @param x A numeric vector representing the data to segment.
 #' @param penalty A double value representing the penalty term for adding a new segment.
-#' @param minseglen The minimum length of the segment
+#' @param minseglen The minimum length of the segment.
+#' 
 #' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+#' 
 #' @examples
-#' x <- c(1, 2, 3, 10, 10, 10, 20, 20, 20, 5, 5, 5)
-#' penalty <- 5
-#' pelt(x, penalty)
+#' n <- 100
+#' data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
+#' PELT_R <- pelt(data, 2 * log(length(data)))
+#' plot_segmentation(data, PELT_R$changepoints, title = "PELT Segmentation")
 #' 
 #' @export
-pelt <- function(x, penalty, minseglen = 1) {
+pelt <- function(x, penalty, minseglen = 1)
+{
   n <- length(x)
   
   # Cumulative sum for optimized calculations

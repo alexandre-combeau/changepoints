@@ -16,8 +16,13 @@
 #' @param y A numeric vector representing the univariate signal to be segmented.
 #' @param gamma A numeric value used as a threshold in the validation function and as a penalty for each segment.
 #' @param test A function of the form `function(y, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.
-#' @param pruning Logical indicating whether to apply pruning to the candidate set during the dynamic programming. Default is TRUE.
-#'
+#' @param all_full_validity Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
+#' at each time step, it tests whether the candidate segment \code{y[(s+1):t]} is valid using the 
+#' user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed 
+#' (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid 
+#' segment extensions. If FALSE, the algorithm skips this validation and considers all candidate 
+#' segments without checking their validity (which can be faster but may return invalid segments).
+#' 
 #' @return A list with the following components:
 #' \describe{
 #'   \item{changepoints}{Integer vector indicating the ending index of each segment (i.e., positions of changepoints).}
@@ -61,26 +66,24 @@ smallest_valid_partitioning_VR <- function(y, gamma, test = valid_OP, all_full_v
 
     for (s in INDEX)
     {
-      #####
-      ##### DANGER LINE. Remove if necessary
-      #####
-      #all_full_validity tester si tous les sous-segments passent le test de f<gamma
-      
-      if (!test(y[(s+1):t], gamma))
+      if (all_full_validity) # tester si tous les sous-segments passent le test de f<gamma
       {
-        INDEX <- setdiff(INDEX, s) # we remove the invalid candidate
-      }
-      
-      segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
-      candidate_Q <- R[s+1, "Q"] + segment_cost
-      candidate_K <- R[s+1, "K"] + 1
-      
-      if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
-      {
-        best_Q <- candidate_Q
-        costQ[t] <- best_Q
-        best_K <- candidate_K
-        best_s <- s
+        if (!test(y[(s+1):t], gamma))
+        {
+          INDEX <- setdiff(INDEX, s) # we remove the invalid candidate
+        }
+        
+        segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
+        candidate_Q <- R[s+1, "Q"] + segment_cost
+        candidate_K <- R[s+1, "K"] + 1
+        
+        if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
+        {
+          best_Q <- candidate_Q
+          costQ[t] <- best_Q
+          best_K <- candidate_K
+          best_s <- s
+        }
       }
     }
     
@@ -89,9 +92,9 @@ smallest_valid_partitioning_VR <- function(y, gamma, test = valid_OP, all_full_v
       if (s != t)
       {
         segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
-        inequality <- R[s + 1, "Q"] + segment_cost > best_Q
-        equality   <- R[s + 1, "K"] == best_K
-        if (inequality && equality)
+        inequality_test <- R[s + 1, "Q"] + segment_cost > best_Q
+        equality_test   <- R[s + 1, "K"] == best_K
+        if (inequality_test && equality_test)
         {
           INDEX <- setdiff(INDEX, s)
         }

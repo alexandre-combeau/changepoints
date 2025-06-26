@@ -11,7 +11,7 @@
 #' @export
 valid_FOCUS <- function(y, gamma)
 {
-  res <- FOCuS(y, gamma)
+  res <- FOCuS::FOCuS(y, gamma)
   
   if(res$changepoint == -1)
   {
