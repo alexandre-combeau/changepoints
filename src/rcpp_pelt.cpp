@@ -9,10 +9,19 @@ using namespace Rcpp;
 //' 
 //' @title PELT Method
 //' @description This function implements the PELT (Pruned Exact Linear Time) method in Rcpp.
+//' 
 //' @param x A numeric vector representing the data to segment.
 //' @param penalty A double value representing the penalty term for adding a new segment.
 //' @param minseglen The minimum length of the segment.
+//' 
 //' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+//' 
+//' @examples
+//' n <- 100
+//' data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
+//' PELT_Rcpp <- optimal_partitioning(data, 2 * log(length(data)))
+//' plot_segmentation(data, PELT_Rcpp$changepoints, title = "PELT Segmentation")
+//' 
 //' @export
 // [[Rcpp::export]]
 List rcpp_pelt(NumericVector x, double penalty, int minseglen = 1)
