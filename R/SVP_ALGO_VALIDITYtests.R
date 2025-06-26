@@ -72,7 +72,7 @@ smallest_valid_partitioning_VR <- function(y, gamma, test = valid_OP, all_full_v
         {
           INDEX <- setdiff(INDEX, s) # we remove the invalid candidate
         }
-        
+      }
         segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
         candidate_Q <- R[s+1, "Q"] + segment_cost
         candidate_K <- R[s+1, "K"] + 1
@@ -84,7 +84,6 @@ smallest_valid_partitioning_VR <- function(y, gamma, test = valid_OP, all_full_v
           best_K <- candidate_K
           best_s <- s
         }
-      }
     }
     
     for (s in INDEX)
