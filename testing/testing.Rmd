@@ -48,7 +48,7 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
 beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
 
 # OP Algorithm
-OP_Rcpp <- rcpp_optimal_partitioning(data, beta)
+OP_Rcpp <- optimal_partitioning_rcpp(data, beta)
 
 # Visualization
 plot_segmentation(data, OP_Rcpp$changepoints, title = "Optimal Partitioning using Rcpp")
@@ -84,7 +84,7 @@ for (i in 1:length(n_vals))
   
   # Temps code C++
   t0 <- Sys.time()
-  rcpp_optimal_partitioning(data, beta)
+  optimal_partitioning_rcpp(data, beta)
   t1 <- Sys.time()
   temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
 }
@@ -156,7 +156,7 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
 beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
 
 # PELT Algorithm
-PELT_Rcpp <- rcpp_pelt(data, beta)
+PELT_Rcpp <- pelt_rcpp(data, beta)
 
 # Visualization
 plot_segmentation(data, PELT_Rcpp$changepoints, title = "PELT using Rcpp")
@@ -192,7 +192,7 @@ for (i in 1:length(n_vals))
   
   # Temps code C++
   t0 <- Sys.time()
-  rcpp_pelt(data, beta)
+  pelt_rcpp(data, beta)
   t1 <- Sys.time()
   temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
 }
@@ -235,7 +235,7 @@ grid()
 
 # Smallest Valid Partitioning
 
-```{r SIMU SVP_valid_FOCUS}
+```{r SIMU_SVP_valid_FOCUS}
 n <- 300
 gap <- 10
 
@@ -251,8 +251,8 @@ for (i in 1:nb_simu)
                          type = "gauss")
   
   gamma <- 2*log(length(data))*dust::sdDiff(data, method = "HALL")^2
-  res_focus <- smallest_valid_partitioning_VR(data, gamma, test = valid_FOCUS)
-  res_OP <- smallest_valid_partitioning_VR(data, gamma)
+  res_focus <- smallest_valid_partitioning(data, gamma, test = valid_FOCUS)
+  res_OP <- smallest_valid_partitioning(data, gamma)
   if (length(res_OP$changepoints) > length(res_focus$changepoints))
   {
     cp_OP_count <- cp_OP_count + 1
@@ -268,7 +268,7 @@ cat(cp_OP_count, "times where OP has more changepoints than `valid_FOCUS`\n")
 cat(cp_Focus_count, "times where `valid_FOCUS` has more changepoints than OP")
 ```
 
-```{r SIMU SVP_valid_RANGE}
+```{r SIMU_SVP_valid_RANGE}
 gap <- 1
 n <- 500
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
@@ -278,8 +278,8 @@ data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
 plot(data, type = 'b')
 abline(v = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n, col = 2, lwd = 3)
 
-pen <- 2 * log(n) * dust::sdDiff(data, method = "HALL")
-#penQ <- qnorm(p = 0.95)*dust::sdDiff(data, method = "HALL")
+pen <- 2 * log(n) * dust::sdDiff(data, method = "HALL")^2
+#penQ <- qnorm(p = 0.95)*dust::sdDiff(data, method = "HALL")^2
 
 nb_simu <- 30
 cp_OP_count <- 0
@@ -287,8 +287,8 @@ cp_Range_count <- 0
 for (i in 1:nb_simu)
 {
   print(i)
-  resOP <- rcpp_optimal_partitioning(data, beta = pen)
-  resRange <- smallest_valid_partitioning_VR(data, gamma = pen, test = valid_RANGE)
+  resOP <- optimal_partitioning_rcpp(data, beta = pen)
+  resRange <- smallest_valid_partitioning(data, gamma = pen, test = valid_RANGE)
   if (length(resOP$changepoints) >= length(resRange$changepoints))
   {
     cp_OP_count <- cp_OP_count + 1
@@ -311,7 +311,7 @@ n <- 500
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2 * log(n) * dust::sdDiff(data, method = "HALL")
+pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 pen <- 30
 
 plot(data, type = 'b')
@@ -334,7 +334,7 @@ for (i in 1:(length(cpts2) - 1))
 }
 
 
-SVP_OP <- smallest_valid_partitioning_VR(data, gamma = pen)
+SVP_OP <- smallest_valid_partitioning(data, gamma = pen)
 cpts <- SVP_OP$changepoints
 plot(data, type = "o", main = paste("SVP_valid_OP, gamma =", round(pen, 2)),
      ylab = "Values", xlab = "Time", col = "blue")
@@ -352,11 +352,11 @@ for (i in 1:(length(cpts2) - 1))
 
 plot(resPELT$nb)
 plot(SVP_OP$nb)
-res_focus <- smallest_valid_partitioning_VR(data, gamma = pen, test = valid_FOCUS)
+res_focus <- smallest_valid_partitioning(data, gamma = pen, test = valid_FOCUS)
 plot(res_focus$nb)
-resRange <- smallest_valid_partitioning_VR(data, gamma = 8, test = valid_RANGE)
+resRange <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
 plot(resRange$nb)
-resRange_slack <- smallest_valid_partitioning_VR(data, gamma = 4, test = valid_RANGE_SLACK)
+resRange_slack <- smallest_valid_partitioning(data, gamma = 4, test = valid_RANGE_SLACK)
 plot(resRange_slack$nb)
 ```
 
@@ -368,17 +368,17 @@ n <- 1000
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2*log(n)*dust::sdDiff(data, method = "HALL")
+pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 
 
-res_1 <- smallest_valid_partitioning_VR(data, gamma = pen, test = valid_FOCUS)
+res_1 <- smallest_valid_partitioning(data, gamma = pen, test = valid_FOCUS)
 res_1$changepoints
-res_2 <- smallest_valid_partitioning_VR(data, gamma = 8, test = valid_RANGE)
+res_2 <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
 res_2$changepoints
 
 cpts <- res_1$changepoints
-plot(data, type = "o", ylab = "Values", xlab = "Time", col = "blue",
-     main = "valid_FOCUS")
+plot(data, type = "o", ylab = "Values", xlab = "Time",
+     col = "blue", main = "valid_FOCUS")
 abline(v = cpts, col = "red", lwd = 2, lty = 2)
 
 cpts <- c(0,cpts)
@@ -431,12 +431,12 @@ n <- 1000
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2*log(n)*dust::sdDiff(data, method = "HALL")
+pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 
 
-res_1 <- smallest_valid_partitioning_VR(data, gamma = 6, test = valid_RANGE_SLACK)
+res_1 <- smallest_valid_partitioning(data, gamma = 6, test = valid_RANGE_SLACK)
 res_1$changepoints
-res_2 <- smallest_valid_partitioning_VR(data, gamma = 8, test = valid_RANGE)
+res_2 <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
 res_2$changepoints
 
 cpts <- res_1$changepoints
