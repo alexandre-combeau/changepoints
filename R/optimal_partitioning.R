@@ -4,7 +4,8 @@
 #' Optimal Partitioning Method using R
 #'
 #' @title Optimal Partitioning Method
-#' @description This function computes the optimal partitioning of a given vector x with a given penalty term beta. It finds the optimal changepoints that minimize the cost function using dynamic programming.
+#' @description This function computes the optimal partitioning of a given vector x with a given penalty term beta.
+#' It finds the optimal changepoints that minimize the cost function using dynamic programming.
 #' 
 #' @param data A numeric vector representing the data to segment.
 #' @param beta A double value representing the penalty term for adding a new segment.
