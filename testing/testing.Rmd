@@ -25,10 +25,10 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                          parameters = c(0,gap,0,gap,0),
                          sdNoise = 1,
                          type = "gauss")
-beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 
 # OP Algorithm
-OP_R <- optimal_partitioning(data, beta)
+OP_R <- optimal_partitioning(data, penalty)
 
 # Visualization
 plot_segmentation(data, OP_R$changepoints, title = "Optimal Partitioning using R")
@@ -45,10 +45,10 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                          parameters = c(0,gap,0,gap,0),
                          sdNoise = 1,
                          type = "gauss")
-beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 
 # OP Algorithm
-OP_Rcpp <- optimal_partitioning_rcpp(data, beta)
+OP_Rcpp <- optimal_partitioning_rcpp(data, penalty)
 
 # Visualization
 plot_segmentation(data, OP_Rcpp$changepoints, title = "Optimal Partitioning using Rcpp")
@@ -74,17 +74,17 @@ for (i in 1:length(n_vals))
                         type = "gauss")
   length_data[i] <- length(data)
   print(length(data))
-  beta <- 2 * log(length(data))
+  penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
   
   # Temps code R
   t0 <- Sys.time()
-  optimal_partitioning(data, beta)
+  optimal_partitioning(data, penalty)
   t1 <- Sys.time()
   temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
   
   # Temps code C++
   t0 <- Sys.time()
-  optimal_partitioning_rcpp(data, beta)
+  optimal_partitioning_rcpp(data, penalty)
   t1 <- Sys.time()
   temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
 }
@@ -94,9 +94,9 @@ lm_Rcpp <- lm(log(temps_Rcpp) ~ log(length_data))
 
 plot(length_data, temps_R, type = "b", pch = 16, col = "red",
      log = "xy",
-     xlab = "log(length_data)",
-     ylab = "log(Time in seconds)",
-     main = "Execution Time for OP in Log-Log Scale",
+     xlab = "Length of data",
+     ylab = "Time in seconds",
+     main = "Execution Time for OP",
      ylim = range(c(temps_R, temps_Rcpp), finite = TRUE),
      xlim = range(length_data, finite = TRUE))
 lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
@@ -133,10 +133,10 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
                       sdNoise = 0.2,
                       type = "gauss")
-beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 
 # PELT Algorithm
-PELT_R <- pelt(data, beta)
+PELT_R <- pelt(data, penalty)
 
 # Visualization
 plot_segmentation(data, PELT_R$changepoints, title = "PELT using R")
@@ -153,10 +153,10 @@ data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                       parameters = c(0,gap,0,gap,0),
                       sdNoise = 0.2,
                       type = "gauss")
-beta <- 2 * log(length(data)) * sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 
 # PELT Algorithm
-PELT_Rcpp <- pelt_rcpp(data, beta)
+PELT_Rcpp <- pelt_rcpp(data, penalty)
 
 # Visualization
 plot_segmentation(data, PELT_Rcpp$changepoints, title = "PELT using Rcpp")
@@ -182,17 +182,17 @@ for (i in 1:length(n_vals))
                         type = "gauss")
   length_data[i] <- length(data)
   print(length(data))
-  beta <- 2 * log(length(data))
+  penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
   
   # Temps code R
   t0 <- Sys.time()
-  pelt(data, beta)
+  pelt(data, penalty)
   t1 <- Sys.time()
   temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
   
   # Temps code C++
   t0 <- Sys.time()
-  pelt_rcpp(data, beta)
+  pelt_rcpp(data, penalty)
   t1 <- Sys.time()
   temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
 }
@@ -202,16 +202,16 @@ lm_Rcpp <- lm(log(temps_Rcpp) ~ log(length_data))
 
 plot(length_data, temps_R, type = "b", pch = 16, col = "red",
      log = "xy",
-     xlab = "log(length_data)",
-     ylab = "log(Time in seconds)",
-     main = "Execution Time for PELT in Log-Log Scale",
+     xlab = "Length of data",
+     ylab = "Time in seconds",
+     main = "Execution Time for PELT",
      ylim = range(c(temps_R, temps_Rcpp), finite = TRUE),
      xlim = range(length_data, finite = TRUE))
 lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
 
 # Linear prediction for R code
 y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
-lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2, legend = "ooo")
+lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
 
 # Linear prediction for Rcpp code
 y_pred_Rcpp <- exp(coef(lm_Rcpp)[1]) * length_data ^ coef(lm_Rcpp)[2]
@@ -250,7 +250,7 @@ for (i in 1:nb_simu)
                          sdNoise = 1.5,
                          type = "gauss")
   
-  gamma <- 2*log(length(data))*dust::sdDiff(data, method = "HALL")^2
+  gamma <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
   res_focus <- smallest_valid_partitioning(data, gamma, test = valid_FOCUS)
   res_OP <- smallest_valid_partitioning(data, gamma)
   if (length(res_OP$changepoints) > length(res_focus$changepoints))
@@ -278,7 +278,7 @@ data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
 plot(data, type = 'b')
 abline(v = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n, col = 2, lwd = 3)
 
-pen <- 2 * log(n) * dust::sdDiff(data, method = "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 #penQ <- qnorm(p = 0.95)*dust::sdDiff(data, method = "HALL")^2
 
 nb_simu <- 30
@@ -287,8 +287,8 @@ cp_Range_count <- 0
 for (i in 1:nb_simu)
 {
   print(i)
-  resOP <- optimal_partitioning_rcpp(data, beta = pen)
-  resRange <- smallest_valid_partitioning(data, gamma = pen, test = valid_RANGE)
+  resOP <- optimal_partitioning_rcpp(data, penalty)
+  resRange <- smallest_valid_partitioning(data, gamma = penalty, test = valid_RANGE)
   if (length(resOP$changepoints) >= length(resRange$changepoints))
   {
     cp_OP_count <- cp_OP_count + 1
@@ -368,10 +368,10 @@ n <- 1000
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 
 
-res_1 <- smallest_valid_partitioning(data, gamma = pen, test = valid_FOCUS)
+res_1 <- smallest_valid_partitioning(data, gamma = penalty, test = valid_FOCUS)
 res_1$changepoints
 res_2 <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
 res_2$changepoints
@@ -431,8 +431,6 @@ n <- 1000
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
-
 
 res_1 <- smallest_valid_partitioning(data, gamma = 6, test = valid_RANGE_SLACK)
 res_1$changepoints
