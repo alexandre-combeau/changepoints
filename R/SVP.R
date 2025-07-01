@@ -13,11 +13,11 @@
 #' It uses cumulative sums for efficient cost calculation, and optionally applies pruning 
 #' to discard changepoint candidates that would lead to invalid segments.
 #'
-#' @param y A numeric vector representing the univariate signal to be segmented.
+#' @param data A numeric vector representing the univariate signal to be segmented.
 #' @param gamma A numeric value used as a threshold in the validation function and as a penalty for each segment.
-#' @param test A function of the form `function(y, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.
+#' @param test A function of the form `function(data, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.
 #' @param all_full_validity Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
-#' at each time step, it tests whether the candidate segment \code{y[(s+1):t]} is valid using the 
+#' at each time step, it tests whether the candidate segment \code{data[(s+1):t]} is valid using the 
 #' user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed 
 #' (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid 
 #' segment extensions. If FALSE, the algorithm skips this validation and considers all candidate 
@@ -33,14 +33,14 @@
 #' }
 #' 
 #' @examples
-#' y <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
-#' result <- smallest_valid_partitioning(y, gamma = 10, test = valid_OP)
-#' print(result$changepoints)
+#' data <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
+#' SVP <- smallest_valid_partitioning(data, gamma = 10, test = valid_OP)
+#' plot_segmentation(data, SVP$changepoints, title = "SVP_OP Segmentation")
 #'
 #' @export
-smallest_valid_partitioning <- function(y, gamma, test = valid_OP, all_full_validity = TRUE)
+smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_validity = TRUE)
 {
-  n <- length(y)
+  n <- length(data)
   
   # Initialisation de la matrice (Q, K, s)
   R <- matrix(Inf, nrow = n+1, ncol = 3)
@@ -53,8 +53,8 @@ smallest_valid_partitioning <- function(y, gamma, test = valid_OP, all_full_vali
   costQ <- numeric(n) # Q_t final pour chaque t
   
   # Cumulative sum for optimized calculations
-  cs_y  <- c(0, cumsum(y))
-  cs_y2 <- c(0, cumsum(y^2))
+  cs_y  <- c(0, cumsum(data))
+  cs_y2 <- c(0, cumsum(data^2))
   
   INDEX <- 0
   
@@ -68,7 +68,7 @@ smallest_valid_partitioning <- function(y, gamma, test = valid_OP, all_full_vali
     {
       if (all_full_validity) # tester si tous les sous-segments passent le test de f<gamma
       {
-        if (!test(y[(s+1):t], gamma))
+        if (!test(data[(s+1):t], gamma))
         {
           INDEX <- setdiff(INDEX, s) # we remove the invalid candidate
         }
