@@ -5,21 +5,21 @@
 \title{Smallest Valid Partitioning with Validation and Pruning}
 \usage{
 smallest_valid_partitioning(
-  y,
+  data,
   gamma,
   test = valid_OP,
   all_full_validity = TRUE
 )
 }
 \arguments{
-\item{y}{A numeric vector representing the univariate signal to be segmented.}
+\item{data}{A numeric vector representing the univariate signal to be segmented.}
 
 \item{gamma}{A numeric value used as a threshold in the validation function and as a penalty for each segment.}
 
-\item{test}{A function of the form `function(y, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.}
+\item{test}{A function of the form `function(data, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.}
 
 \item{all_full_validity}{Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
-at each time step, it tests whether the candidate segment \code{y[(s+1):t]} is valid using the 
+at each time step, it tests whether the candidate segment \code{data[(s+1):t]} is valid using the 
 user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed 
 (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid 
 segment extensions. If FALSE, the algorithm skips this validation and considers all candidate 
@@ -48,8 +48,8 @@ to discard changepoint candidates that would lead to invalid segments.
 Smallest Valid Partitioning with Validation and Pruning
 }
 \examples{
-y <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
-result <- smallest_valid_partitioning(y, gamma = 10, test = valid_OP)
-print(result$changepoints)
+data <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
+SVP <- smallest_valid_partitioning(data, gamma = 10, test = valid_OP)
+plot_segmentation(data, SVP$changepoints, title = "SVP_OP Segmentation")
 
 }
