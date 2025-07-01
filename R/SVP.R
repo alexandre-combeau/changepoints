@@ -34,7 +34,7 @@
 #' 
 #' @examples
 #' y <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
-#' result <- smallest_valid_partitioning_VR(y, gamma = 10, test = valid_OP)
+#' result <- smallest_valid_partitioning(y, gamma = 10, test = valid_OP)
 #' print(result$changepoints)
 #'
 #' @export
