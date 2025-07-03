@@ -71,6 +71,7 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
         if (!test(data[(s+1):t], gamma))
         {
           INDEX <- setdiff(INDEX, s) # we remove the invalid candidate
+          next # skipping the iteration
         }
       }
         segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
