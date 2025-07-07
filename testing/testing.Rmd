@@ -7,11 +7,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-devtools::install_github("vrunge/dust")
+#devtools::install_github("vrunge/dust")
 library(dust)
-devtools::install_github("jchiquet/aricode")
+#devtools::install_github("jchiquet/aricode")
 library(aricode)
-devtools::install_github("gtromano/FOCuS")
+#devtools::install_github("gtromano/FOCuS")
 library(FOCuS)
 library(changepoints)
 ```
@@ -76,13 +76,13 @@ for (i in 1:length(n_vals))
   print(length(data))
   penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
   
-  # Temps code R
+  # Execution time R
   t0 <- Sys.time()
   optimal_partitioning(data, penalty)
   t1 <- Sys.time()
   temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
   
-  # Temps code C++
+  # Execution time C++
   t0 <- Sys.time()
   optimal_partitioning_rcpp(data, penalty)
   t1 <- Sys.time()
@@ -184,13 +184,13 @@ for (i in 1:length(n_vals))
   print(length(data))
   penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
   
-  # Temps code R
+  # Execution time R
   t0 <- Sys.time()
   pelt(data, penalty)
   t1 <- Sys.time()
   temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
   
-  # Temps code C++
+  # Execution time C++
   t0 <- Sys.time()
   pelt_rcpp(data, penalty)
   t1 <- Sys.time()
@@ -219,14 +219,14 @@ lines(length_data, y_pred_Rcpp, col = "green", lty = 2, lwd = 2)
 
 # Expected slope O(n^2)
 middle <- exp((coef(lm_R)[1] + coef(lm_Rcpp)[1]) / 2)
-middle <- exp(coef(lm_R)[1])
-y_theorical <- middle * length_data ^ 2
+expected_slope <- 1.6
+y_theorical <- middle * length_data ^ expected_slope
 lines(length_data, y_theorical, col = "purple", lty = 2, lwd = 2)
 
 legend("topleft",
        legend = c(paste("R slope :", round(coef(lm_R)[2], 2)),
                   paste("Rcpp slope :", round(coef(lm_Rcpp)[2], 2)),
-                  paste("Expected slope :", 2)),
+                  paste("Expected slope :", expected_slope)),
        col    = c("red", "blue", "purple"),
        pch    = c(16, 17),
        lty    = c(1, 1))
@@ -234,6 +234,90 @@ grid()
 ```
 
 # Smallest Valid Partitioning
+
+```{r SVP}
+nb_add_data <- 20
+temps_R <- numeric(nb_add_data)
+length_data <- integer(nb_add_data)
+data <- c()
+gamma <- 4
+for (i in 1:nb_add_data)
+{
+  data <- c(data, rnorm(50, 1, 1), rnorm(50, 0, 1), rnorm(50, 1, 1), rnorm(50, 0, 1))
+  print(i)
+  length_data[i] <- 200*i
+  
+  # Execution time
+  t0 <- Sys.time()
+  local <- smallest_valid_partitioning(data, gamma, valid_FOCUS)
+  t1 <- Sys.time()
+  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  cat("number of chpts :", length(local$changepoints), "\n")
+}
+
+lm_R <- lm(log(temps_R) ~ log(length_data))
+
+plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+     log = "xy",
+     xlab = "Length of data",
+     ylab = "Time in seconds",
+     main = "Execution Time : SVP FOCuS",
+     ylim = range(temps_R, finite = TRUE),
+     xlim = range(length_data, finite = TRUE))
+
+# Linear prediction for R code
+y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
+lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
+
+legend("topleft",
+       legend = c(paste("Slope :", round(coef(lm_R)[2], 2))),
+       col    = "red",
+       pch    = c(16, 17),
+       lty    = c(1, 1))
+grid()
+```
+
+```{r SVP}
+n <- 10^(seq(2, 3, length.out = 8))
+temps_R <- numeric(length(n))
+gamma <- 8
+for (i in 1:length(n))
+{
+  data <- c(rnorm(n[i]/2, 5, 1), rnorm(n[i]/2, 0, 1))
+  print(i)
+  
+  # Execution time
+  t0 <- Sys.time()
+  local <- smallest_valid_partitioning(data, gamma, valid_FOCUS)
+  t1 <- Sys.time()
+  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  cat("number of chpts :", length(local$changepoints), "\n")
+}
+
+length_data <- n
+
+lm_R <- lm(log(temps_R) ~ log(length_data))
+
+plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+     log = "xy",
+     xlab = "Length of data",
+     ylab = "Time in seconds",
+     main = "Execution Time : SVP FOCuS",
+     ylim = range(temps_R, finite = TRUE),
+     xlim = range(length_data, finite = TRUE))
+
+# Linear prediction for R code
+y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
+lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
+
+legend("topleft",
+       legend = c(paste("Slope :", round(coef(lm_R)[2], 2))),
+       col    = "red",
+       pch    = c(16, 17),
+       lty    = c(1, 1))
+grid()
+```
+
 
 ```{r SIMU_SVP_valid_FOCUS}
 n <- 300
@@ -305,50 +389,29 @@ cat(cp_Range_count, "times where `valid_RANGE` has more changepoints than OP")
 
 # SVP_PELT = PELT ?
 
-```{r SVP_PELT__equal__PELT}
+```{r SVP_PELT_equal_PELT}
 gap <- 2
 n <- 500
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-pen <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
+penalty <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
 pen <- 30
 
+# Expected
 plot(data, type = 'b')
 abline(v = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n, col = 2, lwd = 3)
 
+# PELT
+resPELT <- pelt_rcpp(data, penalty)
+plot_segmentation(data, resPELT$changepoints,
+                  title = paste("PELT, penalty =", round(penalty, 2)))
 
-resPELT <- pelt(data, penalty = pen)
-cpts <- resPELT$changepoints
-plot(data, type = "o", main = paste("PELT using R, beta =", round(pen, 2)),
-     ylab = "Values", xlab = "Time", col = "blue")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
-
-cpts2 <- c(0,cpts)
-for (i in 1:(length(cpts2) - 1))
-{
-  segment_mean <- mean(data[(cpts2[i] + 1):cpts2[i + 1]])
-  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
-           x1 = cpts2[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-}
-
-
-SVP_OP <- smallest_valid_partitioning(data, gamma = pen)
+# SVP_OP
+SVP_OP <- smallest_valid_partitioning(data, penalty)
 cpts <- SVP_OP$changepoints
-plot(data, type = "o", main = paste("SVP_valid_OP, gamma =", round(pen, 2)),
-     ylab = "Values", xlab = "Time", col = "blue")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
-
-cpts2 <- c(0,cpts)
-for (i in 1:(length(cpts2) - 1))
-{
-  segment_mean <- mean(data[(cpts2[i] + 1):cpts2[i + 1]])
-  segments(x0 = cpts2[i] + 1, y0 = segment_mean,
-           x1 = cpts2[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-}
-
+plot_segmentation(data, SVP_OP$changepoints,
+                  title = paste("SVP_valid_OP, gamma =", round(penalty, 2)))
 
 plot(resPELT$nb)
 plot(SVP_OP$nb)
@@ -362,34 +425,27 @@ plot(resRange_slack$nb)
 
 # Comparison of segmentations using ARI
 
-```{r ARI_valid_FOCUS_valid_RANGE}
+```{r ARI_valid_FOCuS}
 gap <- 2
 n <- 1000
-data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
+chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n
+data <- dataGenerator_1D(chpts = chpts,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-penalty <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
+gamma <- 25
 
+res_1 <- smallest_valid_partitioning(data, gamma, test = valid_FOCUS)
 
-res_1 <- smallest_valid_partitioning(data, gamma = penalty, test = valid_FOCUS)
 res_1$changepoints
-res_2 <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
-res_2$changepoints
 
-cpts <- res_1$changepoints
-plot(data, type = "o", ylab = "Values", xlab = "Time",
-     col = "blue", main = "valid_FOCUS")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
+plot_segmentation(data, res_1$changepoints,
+                  title = paste("valid_FOCuS, gamma =", round(gamma, 2)))
 
-cpts <- c(0,cpts)
+cpts <- c(0, res_1$changepoints)
 mean_values <- integer(length(cpts) - 1)
 for (i in 1:(length(cpts) - 1))
 {
-  segment_mean <- mean(data[(cpts[i] + 1):cpts[i + 1]])
-  segments(x0 = cpts[i] + 1, y0 = segment_mean,
-           x1 = cpts[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-  mean_values[i] <- segment_mean
+  mean_values[i] <- mean(data[(cpts[i] + 1):cpts[i + 1]])
 }
 
 times <- cpts[2]
@@ -397,22 +453,15 @@ for (i in 2:length(mean_values))
 {
   times[i] <- cpts[i+1] - cpts[i]
 }
-partition_1 <- rep(mean_values, times = times)
+partition_SVP_FOCUS <- rep(mean_values, times = times)
 
-cpts <- res_2$changepoints
-plot(data, type = "o", ylab = "Values", xlab = "Time", col = "blue",
-     main = "valid_RANGE")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
+plot_segmentation(data, chpts, title = "Segmentation expected")
 
-cpts <- c(0,cpts)
+cpts <- c(0,chpts)
 mean_values <- integer(length(cpts) - 1)
 for (i in 1:(length(cpts) - 1))
 {
-  segment_mean <- mean(data[(cpts[i] + 1):cpts[i + 1]])
-  segments(x0 = cpts[i] + 1, y0 = segment_mean,
-           x1 = cpts[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-  mean_values[i] <- segment_mean
+  mean_values[i] <- mean(data[(cpts[i] + 1):cpts[i + 1]])
 }
 
 times <- cpts[2]
@@ -420,68 +469,67 @@ for (i in 2:length(mean_values))
 {
   times[i] <- cpts[i+1] - cpts[i]
 }
-partition_2 <- rep(mean_values, times = times)
+partition_expected <- rep(mean_values, times = times)
 
-ARI(partition_1, partition_2)
+ARI(partition_SVP_FOCUS, partition_expected)
 ```
 
-```{r ARI_valid_RANGE_SLACK_valid_RANGE}
-gap <- 2
-n <- 1000
-data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
-                         parameters = c(0,gap,0,gap,0,gap,0,gap,0),
-                         sdNoise = 1.5)
+```{r Exec_Time_PELT}
+n_vals <- 10^(seq(1, 2, length.out = 10))
+gap <- 0.5
+temps_R <- numeric(length(n_vals))
+temps_Rcpp <- numeric(length(n_vals))
+length_data <- integer(length(n_vals))
 
-res_1 <- smallest_valid_partitioning(data, gamma = 6, test = valid_RANGE_SLACK)
-res_1$changepoints
-res_2 <- smallest_valid_partitioning(data, gamma = 8, test = valid_RANGE)
-res_2$changepoints
-
-cpts <- res_1$changepoints
-plot(data, type = "o", ylab = "Values", xlab = "Time", col = "blue",
-     main = "valid_RANGE_SLACK")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
-
-cpts <- c(0,cpts)
-mean_values <- integer(length(cpts) - 1)
-for (i in 1:(length(cpts) - 1))
+for (i in 1:length(n_vals))
 {
-  segment_mean <- mean(data[(cpts[i] + 1):cpts[i + 1]])
-  segments(x0 = cpts[i] + 1, y0 = segment_mean,
-           x1 = cpts[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-  mean_values[i] <- segment_mean
+  n <- n_vals[i]
+  data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+                        parameters = c(0,gap,0,gap,0),
+                        sdNoise = 1,
+                        type = "gauss")
+  length_data[i] <- length(data)
+  print(length(data))
+  gamma <- 10
+  
+  # Execution time R
+  t0 <- Sys.time()
+  smallest_valid_partitioning(data, gamma, test = valid_FOCUS)
+  t1 <- Sys.time()
+  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  
+  # Execution time C++
+  t0 <- Sys.time()
+  smallest_valid_partitioning(data, gamma, test = valid_RANGE)
+  t1 <- Sys.time()
+  temps_Rcpp[i] <- as.numeric(difftime(t1, t0, units = "secs"))
 }
 
-times <- cpts[2]
-for (i in 2:length(mean_values))
-{
-  times[i] <- cpts[i+1] - cpts[i]
-}
-partition_1 <- rep(mean_values, times = times)
+lm_R    <- lm(log(temps_R) ~ log(length_data))
+lm_Rcpp <- lm(log(temps_Rcpp) ~ log(length_data))
 
-cpts <- res_2$changepoints
-plot(data, type = "o", ylab = "Values", xlab = "Time", col = "blue",
-     main = "valid_RANGE")
-abline(v = cpts, col = "red", lwd = 2, lty = 2)
+plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+     log = "xy",
+     xlab = "Length of data",
+     ylab = "Time in seconds",
+     main = "Execution Time",
+     ylim = range(c(temps_R, temps_Rcpp), finite = TRUE),
+     xlim = range(length_data, finite = TRUE))
+lines(length_data, temps_Rcpp, type = "b", pch = 17, col = "blue")
 
-cpts <- c(0,cpts)
-mean_values <- integer(length(cpts) - 1)
-for (i in 1:(length(cpts) - 1))
-{
-  segment_mean <- mean(data[(cpts[i] + 1):cpts[i + 1]])
-  segments(x0 = cpts[i] + 1, y0 = segment_mean,
-           x1 = cpts[i+1], y1 = segment_mean,
-           col = "green", lwd = 2)
-  mean_values[i] <- segment_mean
-}
+# Linear prediction for R code
+y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
+lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
 
-times <- cpts[2]
-for (i in 2:length(mean_values))
-{
-  times[i] <- cpts[i+1] - cpts[i]
-}
-partition_2 <- rep(mean_values, times = times)
+# Linear prediction for Rcpp code
+y_pred_Rcpp <- exp(coef(lm_Rcpp)[1]) * length_data ^ coef(lm_Rcpp)[2]
+lines(length_data, y_pred_Rcpp, col = "green", lty = 2, lwd = 2)
 
-ARI(partition_1, partition_2)
+legend("topleft",
+       legend = c(paste("SVP_FOCuS, gamma=10, slope :", round(coef(lm_R)[2], 2)),
+                  paste("SVP_RANGE, gamma=10, slope :", round(coef(lm_Rcpp)[2], 2))),
+       col    = c("red", "blue"),
+       pch    = c(16, 17),
+       lty    = c(1, 1))
+grid()
 ```
