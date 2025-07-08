@@ -41,10 +41,10 @@ optimal_partitioning <- function(data, beta)
       # Segment cost [s+1, t]
       segment_cost <- (cs_x2[t+1]-cs_x2[s+1]) - (cs_x[t+1]-cs_x[s+1])^2 / (t-s)
       
-      # Total cost with penalisation beta
+      # Total cost with beta penalisation
       cost <- Q[s + 1] + segment_cost + beta
       
-      # Minimisation
+      # Minimization
       if (cost < Q[t + 1])
       {
         Q[t + 1] <- cost
@@ -53,7 +53,7 @@ optimal_partitioning <- function(data, beta)
     }
   }
   
-  # Reconstruction of changepoints (backtracking)
+  # Changepoints reconstruction (backtracking)
   optimal_cpts <- integer(0)
   t <- n
   while (t > 0)
