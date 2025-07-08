@@ -53,7 +53,7 @@ optimal_partitioning <- function(data, beta)
     }
   }
   
-  # Reconstruction of changepoints
+  # Reconstruction of changepoints (backtracking)
   optimal_cpts <- integer(0)
   t <- n
   while (t > 0)
