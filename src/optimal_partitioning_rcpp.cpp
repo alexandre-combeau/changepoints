@@ -28,16 +28,15 @@ List optimal_partitioning_rcpp(NumericVector data, double beta)
 {
   int n = data.size();
   
-  // Initialisation
+  // Initialize the costs and the changepoints
   std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
   Q[0] = -beta;
   std::vector<int> lastChange(n + 1, 0);
   std::vector<int> R(n);
   
-  // Sommes cumulatives pour les calculs optimisés
+  // Cumulative sum for optimized calculations
   std::vector<double> cs_x(n + 1, 0.0);
   std::vector<double> cs_x2(n + 1, 0.0);
-  
   for (int i = 0; i < n; i++)
   {
     R[i] = i + 1;
@@ -45,19 +44,19 @@ List optimal_partitioning_rcpp(NumericVector data, double beta)
     cs_x2[i + 1] = cs_x2[i] + data[i] * data[i];
   }
   
-  // Calcul des coûts pour chaque sous-segment
+  // Cost calculation for each sub-segment
   for (int t = 1; t <= n; t++)
   {
     for (int s = 0; s < t; s++)
     {
-      // Coût de la moyenne quadratique sur le segment [s+1, t]
+      // Segment cost [s+1, t]
       double segment_cost = (cs_x2[t] - cs_x2[s]) -
         (cs_x[t] - cs_x[s]) * (cs_x[t] - cs_x[s]) / (t - s);
       
-      // Coût total avec pénalité beta
+      // Total cost with beta penalisation
       double cost = Q[s] + segment_cost + beta;
       
-      // Mise à jour
+      // Minimization
       if (cost < Q[t])
       {
         Q[t] = cost;
@@ -66,7 +65,7 @@ List optimal_partitioning_rcpp(NumericVector data, double beta)
     }
   }
   
-  // Reconstruction des points de rupture
+  // Changepoints reconstruction (backtracking)
   std::vector<int> optimal_cpts;
   int t = n;
   while (t > 0)
