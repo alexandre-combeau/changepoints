@@ -24,7 +24,7 @@ Optimal Partitioning algorithm using PELT
 \examples{
 n <- 1000
 data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
-penalty <- 2 * log(length(penalty))
+penalty <- 2 * log(length(data))
 PELT_R <- pelt(data, penalty)
 plot_segmentation(data, PELT_R$changepoints, title = "PELT Segmentation")
 
