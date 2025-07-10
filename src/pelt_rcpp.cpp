@@ -5,94 +5,83 @@
 
 using namespace Rcpp;
 
-//' PELT Method using C++
+//' Optimal Partitioning algorithm using PELT
 //' 
-//' @title PELT Method
-//' @description This function implements the PELT (Pruned Exact Linear Time) method in Rcpp.
+//' @title Optimal Partitioning using PELT
+//' @description This function implements the OP algorithm using PELT of a given vector `data` with a given penalty term.
+//' It finds the optimal changepoints that minimize the cost function using dynamic programming.
 //' 
 //' @param data A numeric vector representing the data to segment.
 //' @param penalty A double value representing the penalty term for adding a new segment.
-//' @param minseglen The minimum length of the segment.
 //' 
 //' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 //' 
 //' @examples
 //' n <- 1000
 //' data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
-//' beta <- 2 * log(length(data))
-//' PELT_Rcpp <- pelt_rcpp(data, beta)
+//' penalty <- 2 * log(length(data))
+//' PELT_Rcpp <- pelt_rcpp(data, penalty)
 //' plot_segmentation(data, PELT_Rcpp$changepoints, title = "PELT Segmentation")
 //' 
 //' @export
 // [[Rcpp::export]]
-List pelt_rcpp(NumericVector data, double penalty, int minseglen = 1)
+List pelt_rcpp(NumericVector data, double penalty)
 {
   int n = data.size();
-  NumericVector S1(n + 1, 0.0), S2(n + 1, 0.0);
   
+  // Initialize the costs and the changepoints
+  NumericVector Q(n + 1, R_PosInf);
+  Q[0] = -penalty;
+  IntegerVector last_cp(n + 1, 0);
+  IntegerVector P(1, 0);
+  IntegerVector length_P(n);
+  
+  // Cumulative sum for optimized calculations
+  NumericVector S1(n + 1, 0.0), S2(n + 1, 0.0);
   for (int i = 0; i < n; i++)
   {
     S1[i + 1] = S1[i] + data[i];
     S2[i + 1] = S2[i] + data[i] * data[i];
   }
   
-  NumericVector Q(n + 1, R_PosInf);
-  Q[0] = -penalty;
-  IntegerVector last_cp(n + 1, 0);
-  std::vector<int> R = {0};
-  std::vector<int> length_R(n);
-  
   for (int t = 0; t < n; t++)
   {
     int t1 = t + 1;
     double best_cost = R_PosInf;
-    int best_index = -1;
+    NumericVector costs(P.size(), R_PosInf);
+    int arg_min = -1;
     
-    for (int s : R)
+    for (int i = 0; i < P.size(); i++)
     {
-      int len = t - s + 1;
-      
-      if (len >= minseglen)
+      int s = P[i];
+      double sum_x = S1[t1] - S1[s];
+      double sum_x2 = S2[t1] - S2[s];
+      double gaussian_cost = sum_x2 - (sum_x * sum_x) / (t1 - s);
+      costs[i] = Q[s] + gaussian_cost + penalty;
+      if (costs[i] < best_cost)
       {
-        double sum_x = S1[t1] - S1[s];
-        double sum_x2 = S2[t1] - S2[s];
-        double cost = sum_x2 - (sum_x * sum_x) / len;
-        double total_cost = Q[s] + cost + penalty;
-        if (total_cost < best_cost)
-        {
-          best_cost = total_cost;
-          best_index = s;
-        }
+        best_cost = costs[i];
+        arg_min = s;
       }
     }
     
     Q[t1] = best_cost;
-    last_cp[t1] = best_index;
+    last_cp[t1] = arg_min;
+    length_P[t] = P.size();
     
-    std::vector<int> newR;
-    for (int s : R)
+    // Pruning
+    IntegerVector newP;
+    for (int i = 0; i < P.size(); i++)
     {
-      int len = t - s + 1;
-      
-      if (len >= minseglen)
-      {
-        double sum_x = S1[t1] - S1[s];
-        double sum_x2 = S2[t1] - S2[s];
-        double cost = sum_x2 - (sum_x * sum_x) / len;
-        if (Q[s] + cost <= Q[t1] + penalty)
-        {
-          newR.push_back(s);
-        }
-      }
+      int s = P[i];
+      if (costs[i] <= Q[t1] + penalty) newP.push_back(s);
     }
-    
-    newR.push_back(t1);
-    R = newR;
-    length_R[t] = R.size();
+    newP.push_back(t1);
+    P = newP;
   }
   
-  // On retrouve les changepoints
-  std::vector<int> changepoints;
+  // Backtracking
+  IntegerVector changepoints;
   int i = n;
   while (last_cp[i] > 0)
   {
@@ -101,11 +90,11 @@ List pelt_rcpp(NumericVector data, double penalty, int minseglen = 1)
   }
   std::reverse(changepoints.begin(), changepoints.end());
   changepoints.push_back(n);
-  std::reverse(R.begin(), R.end());
+  std::reverse(P.begin(), P.end());
   
   return List::create(
     Named("changepoints") = wrap(changepoints),
-    Named("lastIndexSet") = wrap(R),
-    Named("nb") = wrap(length_R),
+    Named("lastIndexSet") = wrap(P),
+    Named("nb") = wrap(length_P),
     Named("costQ") = wrap(std::vector<double>(Q.begin() + 1, Q.end())));
 }

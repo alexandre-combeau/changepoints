@@ -11,16 +11,16 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // smallest_valid_partitioning_rcpp
-List smallest_valid_partitioning_rcpp(NumericVector y, double gamma, Function test, bool pruning);
-RcppExport SEXP _changepoints_smallest_valid_partitioning_rcpp(SEXP ySEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP pruningSEXP) {
+List smallest_valid_partitioning_rcpp(NumericVector data, double gamma, Function test, bool all_full_validity);
+RcppExport SEXP _changepoints_smallest_valid_partitioning_rcpp(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP all_full_validitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< Function >::type test(testSEXP);
-    Rcpp::traits::input_parameter< bool >::type pruning(pruningSEXP);
-    rcpp_result_gen = Rcpp::wrap(smallest_valid_partitioning_rcpp(y, gamma, test, pruning));
+    Rcpp::traits::input_parameter< bool >::type all_full_validity(all_full_validitySEXP);
+    rcpp_result_gen = Rcpp::wrap(smallest_valid_partitioning_rcpp(data, gamma, test, all_full_validity));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -37,15 +37,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // pelt_rcpp
-List pelt_rcpp(NumericVector data, double penalty, int minseglen);
-RcppExport SEXP _changepoints_pelt_rcpp(SEXP dataSEXP, SEXP penaltySEXP, SEXP minseglenSEXP) {
+List pelt_rcpp(NumericVector data, double penalty);
+RcppExport SEXP _changepoints_pelt_rcpp(SEXP dataSEXP, SEXP penaltySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
     Rcpp::traits::input_parameter< double >::type penalty(penaltySEXP);
-    Rcpp::traits::input_parameter< int >::type minseglen(minseglenSEXP);
-    rcpp_result_gen = Rcpp::wrap(pelt_rcpp(data, penalty, minseglen));
+    rcpp_result_gen = Rcpp::wrap(pelt_rcpp(data, penalty));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -53,7 +52,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_changepoints_smallest_valid_partitioning_rcpp", (DL_FUNC) &_changepoints_smallest_valid_partitioning_rcpp, 4},
     {"_changepoints_optimal_partitioning_rcpp", (DL_FUNC) &_changepoints_optimal_partitioning_rcpp, 2},
-    {"_changepoints_pelt_rcpp", (DL_FUNC) &_changepoints_pelt_rcpp, 3},
+    {"_changepoints_pelt_rcpp", (DL_FUNC) &_changepoints_pelt_rcpp, 2},
     {NULL, NULL, 0}
 };
 
