@@ -29,11 +29,16 @@ segments without checking their validity (which can be faster but may return inv
 A list with the following components:
 \describe{
   \item{changepoints}{Integer vector indicating the ending index of each segment (i.e., positions of changepoints).}
-  \item{nb}{Integer vector of length \code{length(y)}. At each position \code{t}, it records the number of candidates tested.}
-  \item{costQ}{Numeric vector of length \code{length(y)}. Quadratic cost value at each time step.}
-  \item{R}{A matrix of dimension \code{(length(y)+1) x 3} containing, for each time step: 
-    \code{Q} (cumulative cost), \code{K} (number of segments), and \code{s} (previous changepoint).}
-}
+  \item{nb}{Integer vector of length \code{length(data)}. At each position \code{t}, it records the number of candidates tested.}
+  \item{costQ}{Numeric vector of length \code{length(data)}. Quadratic cost value at each time step.}
+  \item{R}{A matrix of dimension \code{(length(data)+1) x 3} containing, for each time step :
+     \describe{
+       \item{Q}{cumulative cost}
+       \item{K}{number of segments}
+       \item{s}{previous changepoint}
+     }
+   }
+ }
 }
 \description{
 This function implements a dynamic programming approach to segment a univariate signal 

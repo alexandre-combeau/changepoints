@@ -2,25 +2,42 @@
 % Please edit documentation in R/RcppExports.R
 \name{smallest_valid_partitioning_rcpp}
 \alias{smallest_valid_partitioning_rcpp}
-\title{SVP Method}
+\title{Smallest Valid Partitioning with Validation and Pruning}
 \usage{
-smallest_valid_partitioning_rcpp(y, gamma, test, pruning = TRUE)
+smallest_valid_partitioning_rcpp(data, gamma, test, all_full_validity = TRUE)
 }
 \arguments{
-\item{y}{A numeric vector representing the data to segment.}
+\item{data}{A numeric vector representing the univariate signal to be segmented.}
 
 \item{gamma}{A numeric value used as a threshold in the validation function and as a penalty for each segment.}
 
-\item{test}{A function of the form `function(y, gamma)` returning TRUE if the segment is valid.}
+\item{test}{A function of the form `function(data, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.}
 
-\item{pruning}{Logical indicating whether to apply pruning to the candidate set during the dynamic programming. Default is TRUE.}
+\item{all_full_validity}{Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
+at each time step, it tests whether the candidate segment \code{data[(s+1):t]} is valid using the
+user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed
+(pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid
+segment extensions. If FALSE, the algorithm skips this validation and considers all candidate
+segments without checking their validity (which can be faster but may return invalid segments).}
 }
 \value{
-A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+A list with the following components :
+\describe{
+  \item{changepoints}{Integer vector indicating the ending index of each segment (i.e., positions of changepoints).}
+  \item{nb}{Integer vector of length \code{length(data)}. At each position \code{t}, it records the number of candidates tested.}
+  \item{costQ}{Numeric vector of length \code{length(data)}. Quadratic cost value at each time step.}
+  \item{R}{A matrix of dimension \code{(length(data)+1) x 3} containing, for each time step :
+    \describe{
+      \item{Q}{cumulative cost}
+      \item{K}{number of segments}
+      \item{s}{previous changepoint}
+    }
+  }
+}
 }
 \description{
-This function implements the SVP (Smallest Valid Partitioning) method in Rcpp.
+This function implements a dynamic programming approach to segment a univariate signal into the smallest number of valid segments, according to a user-defined validation function. Each segment must pass a validity test (e.g., based on variance, range, etc.). The algorithm minimizes a quadratic cost subject to this constraint.
 }
 \details{
-SVP Method using C++
+Smallest Valid Partitioning with Validation and Pruning using Rcpp
 }
