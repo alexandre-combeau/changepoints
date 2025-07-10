@@ -2,32 +2,30 @@
 % Please edit documentation in R/pelt.R
 \name{pelt}
 \alias{pelt}
-\title{PELT Method}
+\title{Optimal Partitioning using PELT}
 \usage{
-pelt(data, penalty, minseglen = 1)
+pelt(data, penalty)
 }
 \arguments{
 \item{data}{A numeric vector representing the data to segment.}
 
 \item{penalty}{A double value representing the penalty term for adding a new segment.}
-
-\item{minseglen}{The minimum length of the segment.}
 }
 \value{
 A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 }
 \description{
-This function implements the PELT (Pruned Exact Linear Time) method in pure R.
-It computes the optimal partitioning of a given numeric vector `x` using a penalized cost function.
+This function implements the OP algorithm using PELT of a given vector `data` with a given penalty term.
+It finds the optimal changepoints that minimize the cost function using dynamic programming.
 }
 \details{
-PELT Method using R
+Optimal Partitioning algorithm using PELT
 }
 \examples{
 n <- 1000
 data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
-beta <- 2 * log(length(data))
-PELT_R <- pelt(data, beta)
+penalty <- 2 * log(length(penalty))
+PELT_R <- pelt(data, penalty)
 plot_segmentation(data, PELT_R$changepoints, title = "PELT Segmentation")
 
 }

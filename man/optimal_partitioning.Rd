@@ -2,30 +2,30 @@
 % Please edit documentation in R/optimal_partitioning.R
 \name{optimal_partitioning}
 \alias{optimal_partitioning}
-\title{Optimal Partitioning Method}
+\title{Optimal Partitioning}
 \usage{
-optimal_partitioning(data, beta)
+optimal_partitioning(data, penalty)
 }
 \arguments{
 \item{data}{A numeric vector representing the data to segment.}
 
-\item{beta}{A double value representing the penalty term for adding a new segment.}
+\item{penalty}{A double value representing the penalty term for adding a new segment.}
 }
 \value{
 A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
 }
 \description{
-This function computes the optimal partitioning of a given vector x with a given penalty term beta.
+This function implements the OP algorithm of a given vector `data` with a given penalty term.
 It finds the optimal changepoints that minimize the cost function using dynamic programming.
 }
 \details{
-Optimal Partitioning Method using R
+Optimal Partitioning algorithm
 }
 \examples{
 n <- 1000
 data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
-beta <- 2 * log(length(data))
-OP_R <- optimal_partitioning(data, beta)
+penalty <- 2 * log(length(data))
+OP_R <- optimal_partitioning(data, penalty)
 plot_segmentation(data, OP_R$changepoints, title = "OP Segmentation")
 
 }
