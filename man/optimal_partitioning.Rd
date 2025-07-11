@@ -19,7 +19,7 @@ This function implements the OP algorithm of a given vector `data` with a given 
 It finds the optimal changepoints that minimize the cost function using dynamic programming.
 }
 \details{
-Optimal Partitioning algorithm
+Optimal Partitioning algorithm using R
 }
 \examples{
 n <- 1000

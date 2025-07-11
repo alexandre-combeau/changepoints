@@ -26,19 +26,14 @@ segment extensions. If FALSE, the algorithm skips this validation and considers 
 segments without checking their validity (which can be faster but may return invalid segments).}
 }
 \value{
-A list with the following components:
+A list with the following components :
 \describe{
   \item{changepoints}{Integer vector indicating the ending index of each segment (i.e., positions of changepoints).}
   \item{nb}{Integer vector of length \code{length(data)}. At each position \code{t}, it records the number of candidates tested.}
   \item{costQ}{Numeric vector of length \code{length(data)}. Quadratic cost value at each time step.}
-  \item{R}{A matrix of dimension \code{(length(data)+1) x 3} containing, for each time step :
-     \describe{
-       \item{Q}{cumulative cost}
-       \item{K}{number of segments}
-       \item{s}{previous changepoint}
-     }
-   }
- }
+  \item{R}{A matrix of dimension \code{length(data) x 3} containing, for each time step: 
+    \code{Q} (cumulative cost), \code{K} (number of segments), and \code{s} (previous changepoint).}
+}
 }
 \description{
 This function implements a dynamic programming approach to segment a univariate signal 
@@ -53,7 +48,7 @@ to discard changepoint candidates that would lead to invalid segments.
 Smallest Valid Partitioning with Validation and Pruning
 }
 \examples{
-data <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
+data <- c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 SVP <- smallest_valid_partitioning(data, gamma = 10, test = valid_OP)
 plot_segmentation(data, SVP$changepoints, title = "SVP_OP Segmentation")
 

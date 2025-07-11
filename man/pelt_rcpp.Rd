@@ -12,7 +12,11 @@ pelt_rcpp(data, penalty)
 \item{penalty}{A double value representing the penalty term for adding a new segment.}
 }
 \value{
-A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+A list with
+(1) the changepoint elements (each last index of each segment in \code{changepoints}),
+(2) a vector \code{nb} saving the number of non-pruned elements at each iteration,
+(3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algorithm,
+(4) a vector \code{costQ} saving the optimal cost at each time step.
 }
 \description{
 This function implements the OP algorithm using PELT of a given vector `data` with a given penalty term.
