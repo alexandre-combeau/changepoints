@@ -59,7 +59,7 @@ cat("Changepoints :", OP_Rcpp$changepoints)
 # Time execution between OP (R) and OP (Rcpp)
 
 ```{r Exec_Time_OP}
-n_vals <- 10^(seq(2, 2.5, length.out = 20))
+n_vals <- 10^(seq(1, 2.5, length.out = 20))
 gap <- 0.5
 temps_R <- numeric(length(n_vals))
 temps_Rcpp <- numeric(length(n_vals))
@@ -169,7 +169,7 @@ cat("Points étudiés :", sum(PELT_Rcpp$nb), "\n")
 # Time execution between PELT (R) and PELT (Rcpp)
 
 ```{r Exec_Time_PELT}
-n_vals <- 10^(seq(1, 2, length.out = 15))
+n_vals <- 10^(seq(1, 2, length.out = 30))
 gap <- 0.5
 temps_R <- numeric(length(n_vals))
 temps_Rcpp <- numeric(length(n_vals))
@@ -428,8 +428,8 @@ plot(resRange_slack$nb)
 # Comparison of segmentations using ARI
 
 ```{r ARI_valid_FOCuS}
-gap <- 2
 n <- 1000
+gap <- 2
 chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n
 data <- dataGenerator_1D(chpts = chpts,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
