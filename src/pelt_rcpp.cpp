@@ -55,7 +55,7 @@ List pelt_rcpp(std::vector<double> data, double penalty)
     std::vector<double> costs(P.size(), std::numeric_limits<double>::infinity());
     int arg_min = -1;
     
-    for (int i = 0; i < P.size(); i++)
+    for (size_t i = 0; i < P.size(); i++)
     {
       int s = P[i];
       double sum_x = S1[t1] - S1[s];
@@ -75,7 +75,7 @@ List pelt_rcpp(std::vector<double> data, double penalty)
     
     // Pruning
     std::vector<int> newP;
-    for (int i = 0; i < P.size(); i++)
+    for (size_t i = 0; i < P.size(); i++)
     {
       int s = P[i];
       if (costs[i] <= Q[t1] + penalty) newP.push_back(s);
