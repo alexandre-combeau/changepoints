@@ -23,17 +23,17 @@
 #' segment extensions. If FALSE, the algorithm skips this validation and considers all candidate 
 #' segments without checking their validity (which can be faster but may return invalid segments).
 #' 
-#' @return A list with the following components:
+#' @return A list with the following components :
 #' \describe{
 #'   \item{changepoints}{Integer vector indicating the ending index of each segment (i.e., positions of changepoints).}
-#'   \item{nb}{Integer vector of length \code{length(y)}. At each position \code{t}, it records the number of candidates tested.}
-#'   \item{costQ}{Numeric vector of length \code{length(y)}. Quadratic cost value at each time step.}
-#'   \item{R}{A matrix of dimension \code{(length(y)+1) x 3} containing, for each time step: 
+#'   \item{nb}{Integer vector of length \code{length(data)}. At each position \code{t}, it records the number of candidates tested.}
+#'   \item{costQ}{Numeric vector of length \code{length(data)}. Quadratic cost value at each time step.}
+#'   \item{R}{A matrix of dimension \code{length(data) x 3} containing, for each time step: 
 #'     \code{Q} (cumulative cost), \code{K} (number of segments), and \code{s} (previous changepoint).}
 #' }
 #' 
 #' @examples
-#' data <- c(rnorm(50, 0, 1), rnorm(50, 5, 1))
+#' data <- c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 #' SVP <- smallest_valid_partitioning(data, gamma = 10, test = valid_OP)
 #' plot_segmentation(data, SVP$changepoints, title = "SVP_OP Segmentation")
 #'
@@ -81,8 +81,8 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
         if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
         {
           best_Q <- candidate_Q
-          costQ[t] <- best_Q
           best_K <- candidate_K
+          costQ[t] <- best_Q
           best_s <- s
         }
     }
@@ -121,5 +121,5 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
   list(changepoints = unname(changepoints),
        nb           = nb,
        costQ        = costQ,
-       R            = R)
+       R            = R[-1,])
 }

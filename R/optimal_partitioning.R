@@ -1,7 +1,7 @@
 ##  GPL-3 License
 ## Copyright (c) 2025 Alexandre Combeau
 
-#' Optimal Partitioning algorithm
+#' Optimal Partitioning algorithm using R
 #'
 #' @title Optimal Partitioning
 #' @description This function implements the OP algorithm of a given vector `data` with a given penalty term.

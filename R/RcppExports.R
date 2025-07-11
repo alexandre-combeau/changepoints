@@ -35,26 +35,27 @@ smallest_valid_partitioning_rcpp <- function(data, gamma, test, all_full_validit
     .Call(`_changepoints_smallest_valid_partitioning_rcpp`, data, gamma, test, all_full_validity)
 }
 
-#' Optimal Partitioning Method using C++
+#' Optimal Partitioning algorithm using Rcpp
 #' 
-#' @title Optimal Partitioning Method
-#' @description This function computes the optimal partitioning of a given vector x with a given penalty term beta. It finds the optimal changepoints that minimize the cost function using dynamic programming.
+#' @title Optimal Partitioning
+#' @description This function implements the OP algorithm of a given vector `data` with a given penalty term.
+#' It finds the optimal changepoints that minimize the cost function using dynamic programming.
 #' 
 #' @param data A numeric vector representing the data to segment.
-#' @param beta A double value representing the penalty term for adding a new segment.
+#' @param penalty A double value representing the penalty term for adding a new segment.
 #' 
-#' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+#' @return A list with (1) the `\code{changepoints}` elements, (2) a vector `\code{nb}` saving the number of non-pruned elements at each iteration, (3) a vector `\code{lastIndexSet}` containing the non-pruned indices at the end of the algo and (4) a vector `\code{costQ}` saving the optimal cost at each time step.
 #' 
 #' @examples
 #' n <- 1000
 #' data <- rep(c(0, 5, 2.5, 7), each = n) + rnorm(4 * n)
-#' beta <- 2 * log(length(data))
-#' OP_Rcpp <- optimal_partitioning_rcpp(data, beta)
+#' penalty <- 2 * log(length(data))
+#' OP_Rcpp <- optimal_partitioning_rcpp(data, penalty)
 #' plot_segmentation(data, OP_Rcpp$changepoints, title = "OP Segmentation")
 #' 
 #' @export
-optimal_partitioning_rcpp <- function(data, beta) {
-    .Call(`_changepoints_optimal_partitioning_rcpp`, data, beta)
+optimal_partitioning_rcpp <- function(data, penalty) {
+    .Call(`_changepoints_optimal_partitioning_rcpp`, data, penalty)
 }
 
 #' Optimal Partitioning algorithm using PELT
@@ -66,7 +67,11 @@ optimal_partitioning_rcpp <- function(data, beta) {
 #' @param data A numeric vector representing the data to segment.
 #' @param penalty A double value representing the penalty term for adding a new segment.
 #' 
-#' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+#' @return A list with
+#' (1) the changepoint elements (each last index of each segment in \code{changepoints}),
+#' (2) a vector \code{nb} saving the number of non-pruned elements at each iteration,
+#' (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algorithm,
+#' (4) a vector \code{costQ} saving the optimal cost at each time step.
 #' 
 #' @examples
 #' n <- 1000
