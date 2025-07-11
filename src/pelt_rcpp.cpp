@@ -14,7 +14,11 @@ using namespace Rcpp;
 //' @param data A numeric vector representing the data to segment.
 //' @param penalty A double value representing the penalty term for adding a new segment.
 //' 
-//' @return A list with (1) the changepoint elements (each last index of each segment in \code{changepoints}), (2) a vector `\code{nb} saving the number of non-pruned elements at each iteration, (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algo and (4) a vector \code{costQ} saving the optimal cost at each time step.
+//' @return A list with
+//' (1) the changepoint elements (each last index of each segment in \code{changepoints}),
+//' (2) a vector \code{nb} saving the number of non-pruned elements at each iteration,
+//' (3) a vector \code{lastIndexSet} containing the non-pruned indices at the end of the algorithm,
+//' (4) a vector \code{costQ} saving the optimal cost at each time step.
 //' 
 //' @examples
 //' n <- 1000
@@ -25,19 +29,19 @@ using namespace Rcpp;
 //' 
 //' @export
 // [[Rcpp::export]]
-List pelt_rcpp(NumericVector data, double penalty)
+List pelt_rcpp(std::vector<double> data, double penalty)
 {
   int n = data.size();
   
   // Initialize the costs and the changepoints
-  NumericVector Q(n + 1, R_PosInf);
+  std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
   Q[0] = -penalty;
-  IntegerVector last_cp(n + 1, 0);
-  IntegerVector P(1, 0);
-  IntegerVector length_P(n);
+  std::vector<int> last_cp(n + 1, 0);
+  std::vector<int> P(1, 0);
+  std::vector<int> length_P(n);
   
   // Cumulative sum for optimized calculations
-  NumericVector S1(n + 1, 0.0), S2(n + 1, 0.0);
+  std::vector<double> S1(n + 1, 0.0), S2(n + 1, 0.0);
   for (int i = 0; i < n; i++)
   {
     S1[i + 1] = S1[i] + data[i];
@@ -48,7 +52,7 @@ List pelt_rcpp(NumericVector data, double penalty)
   {
     int t1 = t + 1;
     double best_cost = R_PosInf;
-    NumericVector costs(P.size(), R_PosInf);
+    std::vector<double> costs(P.size(), std::numeric_limits<double>::infinity());
     int arg_min = -1;
     
     for (int i = 0; i < P.size(); i++)
@@ -70,7 +74,7 @@ List pelt_rcpp(NumericVector data, double penalty)
     length_P[t] = P.size();
     
     // Pruning
-    IntegerVector newP;
+    std::vector<int> newP;
     for (int i = 0; i < P.size(); i++)
     {
       int s = P[i];
@@ -81,7 +85,7 @@ List pelt_rcpp(NumericVector data, double penalty)
   }
   
   // Backtracking
-  IntegerVector changepoints;
+  std::vector<int> changepoints;
   int i = n;
   while (last_cp[i] > 0)
   {

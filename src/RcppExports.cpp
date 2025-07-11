@@ -25,24 +25,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // optimal_partitioning_rcpp
-List optimal_partitioning_rcpp(NumericVector data, double beta);
-RcppExport SEXP _changepoints_optimal_partitioning_rcpp(SEXP dataSEXP, SEXP betaSEXP) {
+List optimal_partitioning_rcpp(NumericVector data, double penalty);
+RcppExport SEXP _changepoints_optimal_partitioning_rcpp(SEXP dataSEXP, SEXP penaltySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(optimal_partitioning_rcpp(data, beta));
+    Rcpp::traits::input_parameter< double >::type penalty(penaltySEXP);
+    rcpp_result_gen = Rcpp::wrap(optimal_partitioning_rcpp(data, penalty));
     return rcpp_result_gen;
 END_RCPP
 }
 // pelt_rcpp
-List pelt_rcpp(NumericVector data, double penalty);
+List pelt_rcpp(std::vector<double> data, double penalty);
 RcppExport SEXP _changepoints_pelt_rcpp(SEXP dataSEXP, SEXP penaltySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type data(dataSEXP);
     Rcpp::traits::input_parameter< double >::type penalty(penaltySEXP);
     rcpp_result_gen = Rcpp::wrap(pelt_rcpp(data, penalty));
     return rcpp_result_gen;
