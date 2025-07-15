@@ -31,33 +31,33 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List pelt_rcpp(std::vector<double> data, double penalty)
 {
-  int n = data.size();
+  size_t n = data.size();
   
   // Initialize the costs and the changepoints
   std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
   Q[0] = -penalty;
-  std::vector<int> last_cp(n + 1, 0);
-  std::vector<int> P(1, 0);
-  std::vector<int> length_P(n);
+  std::vector<size_t> last_cp(n + 1, 0);
+  std::vector<size_t> P(1, 0);
+  std::vector<size_t> length_P(n);
   
   // Cumulative sum for optimized calculations
   std::vector<double> S1(n + 1, 0.0), S2(n + 1, 0.0);
-  for (int i = 0; i < n; i++)
+  for (size_t i = 0; i < n; i++)
   {
     S1[i + 1] = S1[i] + data[i];
     S2[i + 1] = S2[i] + data[i] * data[i];
   }
   
-  for (int t = 0; t < n; t++)
+  for (size_t t = 0; t < n; t++)
   {
-    int t1 = t + 1;
-    double best_cost = R_PosInf;
+    size_t t1 = t + 1;
     std::vector<double> costs(P.size(), std::numeric_limits<double>::infinity());
-    int arg_min = -1;
+    double best_cost = std::numeric_limits<double>::infinity();
+    size_t arg_min = 1;
     
     for (size_t i = 0; i < P.size(); i++)
     {
-      int s = P[i];
+      size_t s = P[i];
       double sum_x = S1[t1] - S1[s];
       double sum_x2 = S2[t1] - S2[s];
       double gaussian_cost = sum_x2 - (sum_x * sum_x) / (t1 - s);
@@ -74,10 +74,10 @@ List pelt_rcpp(std::vector<double> data, double penalty)
     length_P[t] = P.size();
     
     // Pruning
-    std::vector<int> newP;
+    std::vector<size_t> newP;
     for (size_t i = 0; i < P.size(); i++)
     {
-      int s = P[i];
+      size_t s = P[i];
       if (costs[i] <= Q[t1] + penalty) newP.push_back(s);
     }
     newP.push_back(t1);
@@ -86,7 +86,7 @@ List pelt_rcpp(std::vector<double> data, double penalty)
   
   // Backtracking
   std::vector<int> changepoints;
-  int i = n;
+  size_t i = n;
   while (last_cp[i] > 0)
   {
     changepoints.push_back(last_cp[i]);
