@@ -10,9 +10,7 @@ implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leur
 
 Equation : $R_n$
 
-## Installation
-
-### 1. Avec `devtools` :
+## Installation avec `devtools` :
 ```r
 install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
