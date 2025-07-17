@@ -20,7 +20,7 @@ library(changepoints)
 
 ```{r OP_R}
 n <- 100
-gap <- 1
+gap <- 0.5
 data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
                          parameters = c(0,gap,0,gap,0),
                          sdNoise = 1,
