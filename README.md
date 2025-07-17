@@ -8,7 +8,7 @@ A ce jour, ce package compare deux algorithmes de segmentation de séries tempor
 
 implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leurs performances en termes de **vitesse d'exécution**, de **précision des ruptures détectées**, et de **complexité algorithmique**.
 
-Equation : $s$
+Equation : $R_n=\min_1\min_2\Bigg\{\Big(\sum_{k=0}^{K-1}\C(y_{\tau_{k}..\tau_{k+1}}),K\Big)\,,\, f(y_{\tau_{k}..\tau_{k+1}})\le\gamma,\ k=0,\dots,K-1\Bigg\}$
 
 ## Installation
 
