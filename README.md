@@ -19,5 +19,8 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-## Temps d'exécution entre R et Rcpp
+## Temps d'exécution pour OP sans Pruning
 ![Execution_Time_OP](https://github.com/user-attachments/assets/2a1f5e1a-ee14-4781-beba-1a59ea38fd7f)
+
+## Temps d'exécution pour OP avec Pruning
+![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08)
