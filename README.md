@@ -16,6 +16,4 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-[expected1.pdf](https://github.com/user-attachments/files/21298946/expected1.pdf)
-
-<pdf width="598" alt="bt" src="https://github.com/user-attachments/files/21298946" />
+![expected1.pdf](https://github.com/user-attachments/files/21298946/expected1.pdf)
