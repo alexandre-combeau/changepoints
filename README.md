@@ -15,3 +15,5 @@ implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leur
 install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
+
+[expected1.pdf](https://github.com/user-attachments/files/21298946/expected1.pdf)
