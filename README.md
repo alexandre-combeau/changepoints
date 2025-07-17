@@ -18,5 +18,4 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-
-![Execution_Time_OP](https://github.com/user-attachments/assets/86891357-5b5f-4ce1-af37-1ba7e5038bb8)
+![Execution_Time_OP](https://github.com/user-attachments/assets/c3ad9aa4-05ec-49b1-8dc9-cb60c97e114d)
