@@ -1,4 +1,4 @@
-# changepoints
+# Détection de ruptures dans une série temporelle
 
 ## Comparaison des algorithmes PELT et Optimal Partitioning en R et Rcpp
 
