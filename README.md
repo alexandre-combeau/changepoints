@@ -16,6 +16,7 @@ Equation : $R_n$
 ```r
 install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
+```
 
 
 ![fond](https://github.com/user-attachments/assets/16cfcffc-df74-45b8-944e-ece6bee751ee)
