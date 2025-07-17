@@ -10,7 +10,7 @@ implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leur
 
 Equation :
 
-$R_n=\min_1$
+$Q_t=\min_1\{\}$
 
 ## Installation avec `devtools` :
 ```r
