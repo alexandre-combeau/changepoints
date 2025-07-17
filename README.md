@@ -15,8 +15,7 @@ Equation : $R_n$
 ### 1. Avec `devtools` :
 ```r
 install.packages("devtools")
-devtools::install_github("alexandre-combeau/changepoints")![expected1](https://github.com/user-attachments/assets/bd00bf9e-cd3b-4a44-a42d-56fa81c67e3e)
-```
+devtools::install_github("alexandre-combeau/changepoints")
 
 
 ![fond](https://github.com/user-attachments/assets/16cfcffc-df74-45b8-944e-ece6bee751ee)
