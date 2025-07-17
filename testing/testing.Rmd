@@ -59,7 +59,7 @@ cat("Changepoints Rcpp :", OP_Rcpp$changepoints)
 # Time execution between OP (R) and OP (Rcpp)
 
 ```{r Exec_Time_OP}
-n_vals <- 10^(seq(1, 2, length.out = 20))
+n_vals <- 10^(seq(1, 2, length.out = 40))
 gap <- 0.5
 temps_R <- numeric(length(n_vals))
 temps_Rcpp <- numeric(length(n_vals))
@@ -115,7 +115,7 @@ legend("topleft",
        col    = c("red", "blue"),
        pch    = c(16, 17),
        lty    = c(1, 1))
-grid() 
+grid()
 ```
 
 # Pruned Exact Linear Time using R
@@ -163,7 +163,7 @@ cat("Studied points Rcpp :", sum(PELT_Rcpp$nb), "\n")
 # Time execution between PELT (R) and PELT (Rcpp)
 
 ```{r Exec_Time_PELT}
-n_vals <- 10^(seq(1, 2, length.out = 30))
+n_vals <- 10^(seq(1, 2, length.out = 40))
 gap <- 0.5
 temps_R <- numeric(length(n_vals))
 temps_Rcpp <- numeric(length(n_vals))
