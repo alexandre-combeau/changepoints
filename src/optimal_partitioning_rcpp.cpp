@@ -25,19 +25,19 @@ using namespace Rcpp;
 //' 
 //' @export
 // [[Rcpp::export]]
-List optimal_partitioning_rcpp(NumericVector data, double penalty)
+List optimal_partitioning_rcpp(std::vector<double> data, double penalty)
 {
-  int n = data.size();
+  size_t n = data.size();
   
   // Initialize the costs and the changepoints
   std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
   Q[0] = -penalty;
-  std::vector<int> lastChange(n + 1, 0);
-  std::vector<int> R(n);
+  std::vector<size_t> lastChange(n + 1, 0);
+  std::vector<size_t> R(n);
   
   // Cumulative sum for optimized calculations
   std::vector<double> S1(n + 1, 0.0), S2(n + 1, 0.0);
-  for (int i = 0; i < n; i++)
+  for (size_t i = 0; i < n; i++)
   {
     R[i] = i + 1;
     S1[i + 1] = S1[i] + data[i];
@@ -45,9 +45,9 @@ List optimal_partitioning_rcpp(NumericVector data, double penalty)
   }
   
   // Cost calculation for each sub-segment
-  for (int t = 1; t <= n; t++)
+  for (size_t t = 1; t <= n; t++)
   {
-    for (int s = 0; s < t; s++)
+    for (size_t s = 0; s < t; s++)
     {
       // Segment cost [s+1, t]
       double segment_cost = (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
@@ -65,8 +65,8 @@ List optimal_partitioning_rcpp(NumericVector data, double penalty)
   }
   
   // Changepoints reconstruction (backtracking)
-  std::vector<int> optimal_cpts;
-  int t = n;
+  std::vector<size_t> optimal_cpts;
+  size_t t = n;
   while (t > 0)
   {
     optimal_cpts.push_back(lastChange[t]);
@@ -76,11 +76,11 @@ List optimal_partitioning_rcpp(NumericVector data, double penalty)
   optimal_cpts.erase(optimal_cpts.begin());
   optimal_cpts.push_back(n);
   
-  std::vector<int> last_R(R.rbegin(), R.rend());
+  std::vector<size_t> last_R(R.rbegin(), R.rend());
   
   return List::create(
     Named("changepoints") = optimal_cpts,
     Named("lastIndexSet") = last_R,
-    Named("nb") = R,
-    Named("costQ") = std::vector<double>(Q.begin() + 1, Q.end()));
+    Named("nb")           = R,
+    Named("costQ")        = std::vector<double>(Q.begin() + 1, Q.end()));
 }
