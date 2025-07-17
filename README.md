@@ -19,4 +19,5 @@ devtools::install_github("alexandre-combeau/changepoints")
 ```
 
 
-![Execution_Time_OP](https://github.com/user-attachments/assets/63042279-f82c-4b8e-ab38-b752cf738d66)
+
+![Execution_Time_OP](https://github.com/user-attachments/assets/4ceb774c-ae42-43b0-be17-b45d26d1642f)
