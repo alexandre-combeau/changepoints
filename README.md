@@ -17,3 +17,4 @@ devtools::install_github("alexandre-combeau/changepoints")
 ```
 
 [expected1.pdf](https://github.com/user-attachments/files/21299113/expected1.pdf)
+![expected1](https://github.com/user-attachments/assets/5d756dd6-a3ba-40f0-b825-ad0b2f26d2b9)
