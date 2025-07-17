@@ -8,6 +8,8 @@ A ce jour, ce package compare deux algorithmes de segmentation de séries tempor
 
 implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leurs performances en termes de **vitesse d'exécution**, de **précision des ruptures détectées**, et de **complexité algorithmique**.
 
+Equation : $s$
+
 ## Installation
 
 ### 1. Avec `devtools` :
