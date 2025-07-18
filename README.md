@@ -4,8 +4,8 @@ A central goal in time-series analysis is to identify the sequence of structural
 This problem has a long-standing history, with major developments since the mid-twentieth century...
 
 This problem presents two distinct challenges :
-  - **Single** changepoint detection, which involves identifying a change within an online data stream
-  - **Multiple** changepoints detection, which seeks to partition a fixed-length time series into homogeneous segments.
+  - **SINGLE** changepoint detection, which involves identifying a change within an online data stream
+  - **MULTIPLE** changepoints detection, which seeks to partition a fixed-length time series into homogeneous segments.
 
 ## Comparaison des algorithmes PELT et Optimal Partitioning en R et Rcpp
 
