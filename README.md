@@ -7,6 +7,8 @@ This problem presents two distinct challenges :
   - **SINGLE** changepoint detection, which involves identifying a change within an online data stream
   - **MULTIPLE** changepoints detection, which seeks to partition a fixed-length time series into homogeneous segments.
 
+For clarity, we focus on the canonical case of detecting changes in the mean of the data distribution.
+
 ## Comparaison des algorithmes PELT et Optimal Partitioning en R et Rcpp
 
 A ce jour, ce package compare deux algorithmes de segmentation de séries temporelles :
