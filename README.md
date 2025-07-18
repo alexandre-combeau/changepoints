@@ -10,7 +10,7 @@ implémentés à la fois en **R** et en **Rcpp**. L'objectif est d'évaluer leur
 
 Equation :
 
-$Q_t=\min_{0\le s<t}Q_s+C(y_{s..t})+\beta$
+$Q_t=\min_{0\le s<t}[Q_s+C(y_{s..t})+\beta]$
 
 ## Installation avec `devtools` :
 
