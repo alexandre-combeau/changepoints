@@ -1,13 +1,15 @@
 # Changepoints detection in a time series
 
 A central goal in time-series analysis is to identify the sequence of structural changes underlying the observed data.
-This problem has a long-standing history, with major developments since the mid-twentieth century...
+This problem has a long-standing history, with major developments since the mid-twentieth century.
 
 This problem presents two distinct challenges :
   - **SINGLE** changepoint detection, which involves identifying a change within an online data stream
   - **MULTIPLE** changepoints detection, which seeks to partition a fixed-length time series into homogeneous segments.
 
 For clarity, we focus on the canonical case of detecting changes in the **MEAN** of the data distribution.
+
+Dynamic programming plays a central role in multiple change-point detection, as it provides the optimal segmentation by exactly minimizing a global cost function – typically formulated as a penalized likelihood
 
 ## Comparaison des algorithmes PELT et Optimal Partitioning en R et Rcpp
 
