@@ -35,6 +35,10 @@ smallest_valid_partitioning_rcpp <- function(data, gamma, test, all_full_validit
     .Call(`_changepoints_smallest_valid_partitioning_rcpp`, data, gamma, test, all_full_validity)
 }
 
+smallest_valid_partitioning_rcpp_seq <- function(data, gamma, test, all_full_validity = TRUE) {
+    .Call(`_changepoints_smallest_valid_partitioning_rcpp_seq`, data, gamma, test, all_full_validity)
+}
+
 #' Optimal Partitioning algorithm using Rcpp
 #' 
 #' @title Optimal Partitioning

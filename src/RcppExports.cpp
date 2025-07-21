@@ -24,13 +24,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// optimal_partitioning_rcpp
-List optimal_partitioning_rcpp(NumericVector data, double penalty);
-RcppExport SEXP _changepoints_optimal_partitioning_rcpp(SEXP dataSEXP, SEXP penaltySEXP) {
+// smallest_valid_partitioning_rcpp_seq
+List smallest_valid_partitioning_rcpp_seq(NumericVector data, double gamma, std::string test, bool all_full_validity);
+RcppExport SEXP _changepoints_smallest_valid_partitioning_rcpp_seq(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP all_full_validitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< std::string >::type test(testSEXP);
+    Rcpp::traits::input_parameter< bool >::type all_full_validity(all_full_validitySEXP);
+    rcpp_result_gen = Rcpp::wrap(smallest_valid_partitioning_rcpp_seq(data, gamma, test, all_full_validity));
+    return rcpp_result_gen;
+END_RCPP
+}
+// optimal_partitioning_rcpp
+List optimal_partitioning_rcpp(std::vector<double> data, double penalty);
+RcppExport SEXP _changepoints_optimal_partitioning_rcpp(SEXP dataSEXP, SEXP penaltySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type data(dataSEXP);
     Rcpp::traits::input_parameter< double >::type penalty(penaltySEXP);
     rcpp_result_gen = Rcpp::wrap(optimal_partitioning_rcpp(data, penalty));
     return rcpp_result_gen;
@@ -51,6 +65,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_changepoints_smallest_valid_partitioning_rcpp", (DL_FUNC) &_changepoints_smallest_valid_partitioning_rcpp, 4},
+    {"_changepoints_smallest_valid_partitioning_rcpp_seq", (DL_FUNC) &_changepoints_smallest_valid_partitioning_rcpp_seq, 4},
     {"_changepoints_optimal_partitioning_rcpp", (DL_FUNC) &_changepoints_optimal_partitioning_rcpp, 2},
     {"_changepoints_pelt_rcpp", (DL_FUNC) &_changepoints_pelt_rcpp, 2},
     {NULL, NULL, 0}
