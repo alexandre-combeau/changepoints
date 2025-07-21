@@ -1,5 +1,6 @@
 #include "tests.h"
 #include <Rcpp.h>
+#include <functional>
 using namespace Rcpp;
 
 // [[Rcpp::export]]
@@ -19,6 +20,7 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
   IntegerVector nb(n);
   NumericVector costQ(n);
 
+  // Precompute cumulative sums
   NumericVector cs_y(n + 1, 0.0);
   NumericVector cs_y2(n + 1, 0.0);
   for (int i = 0; i < n; ++i) {
@@ -26,13 +28,32 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
     cs_y2[i + 1] = cs_y2[i] + data[i] * data[i];
   }
 
-  std::vector<int> INDEX = {0};
-  std::vector<std::unique_ptr<GaussianMean>> TESTS;
+  // Precompute segment costs: seg_cost[t][s] for 0 <= s < t <= n
+  std::vector<std::vector<double>> seg_cost(n + 1, std::vector<double>(n + 1, 0.0));
+  for (int t = 1; t <= n; ++t) {
+    for (int s = 0; s < t; ++s) {
+      double sum_y = cs_y[t] - cs_y[s];
+      double sum_y2 = cs_y2[t] - cs_y2[s];
+      seg_cost[t][s] = sum_y2 - (sum_y * sum_y) / (t - s);
+    }
+  }
+
+  // Define a generic initializer for test objects
+  std::function<std::unique_ptr<TestBase>()> newTest;
   if (test == "gaussian_mean") {
-    TESTS.push_back(std::make_unique<GaussianMean>());
-  } else {
+    newTest = []() { return std::make_unique<GaussianMean>(); };
+  }
+  // Add more cases here for other tests, e.g.:
+  // else if (test == "bernoulli_mean") {
+  //   newTest = []() { return std::make_unique<BernoulliMean>(); };
+  // }
+  else {
     stop("Unknown test type");
   }
+
+  std::vector<int> INDEX = {0};
+  std::vector<std::unique_ptr<TestBase>> TESTS;
+  TESTS.push_back(newTest());
 
   for (int t = 1; t <= n; t++) {
     double best_Q = R_PosInf;
@@ -40,7 +61,7 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
     int best_s = -1;
 
     std::vector<int> new_INDEX;
-    std::vector<std::unique_ptr<GaussianMean>> new_TESTS;
+    std::vector<std::unique_ptr<TestBase>> new_TESTS;
 
     for (size_t k = 0; k < INDEX.size(); ++k) {
       int s = INDEX[k];
@@ -53,14 +74,10 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
       bool valid = true;
       if (all_full_validity) {
         valid = stat_val < gamma;
-        //Rcpp::Rcout << "[sequential] t=" << t << " s=" << s << " stat=" << stat_val << " valid=" << valid << std::endl;
       }
 
       if (valid) {
-        double sum_y = cs_y[t] - cs_y[s];
-        double sum_y2 = cs_y2[t] - cs_y2[s];
-        double seg_cost = sum_y2 - (sum_y * sum_y) / (t - s);
-        double candidate_Q = R(s, 0) + seg_cost;
+        double candidate_Q = R(s, 0) + seg_cost[t][s];
         int candidate_K = R(s, 1) + 1;
 
         if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q)) {
@@ -76,16 +93,13 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
 
     // Pruning step
     std::vector<int> pruned_INDEX;
-    std::vector<std::unique_ptr<GaussianMean>> pruned_TESTS;
+    std::vector<std::unique_ptr<TestBase>> pruned_TESTS;
     for (size_t k = 0; k < new_INDEX.size(); ++k) {
       int s = new_INDEX[k];
       auto& test_instance = new_TESTS[k];
       if (s == t) continue;
 
-      double sum_y = cs_y[t] - cs_y[s];
-      double sum_y2 = cs_y2[t] - cs_y2[s];
-      double seg_cost = sum_y2 - (sum_y * sum_y) / (t - s);
-      double candidate_Q = R(s, 0) + seg_cost;
+      double candidate_Q = R(s, 0) + seg_cost[t][s];
       int candidate_K = R(s, 1);
 
       if (!(candidate_Q > best_Q && candidate_K == best_K)) {
@@ -95,7 +109,7 @@ List smallest_valid_partitioning_rcpp_seq(NumericVector data,
     }
     // Add new candidate for t
     pruned_INDEX.push_back(t);
-    pruned_TESTS.push_back(std::make_unique<GaussianMean>());
+    pruned_TESTS.push_back(newTest());
 
     INDEX = pruned_INDEX;
     TESTS = std::move(pruned_TESTS);
