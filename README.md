@@ -11,7 +11,7 @@ For clarity, we focus on the canonical case of detecting changes in the **MEAN**
 
 Dynamic programming plays a central role in multiple change-point detection, as it provides the optimal segmentation by exactly minimizing a global cost function – typically formulated as a penalized likelihood
 
-## Installation avec `devtools` :
+## Installation via the `devtools` package :
 
 ```r
 install.packages("devtools")
