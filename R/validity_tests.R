@@ -4,9 +4,9 @@
 #' Validity Test Based on FOCuS
 #' 
 #' @title Validity Test Based on FOCuS
-#' @description Checks whether a given segment is valid using the FOCuS method (i.e., has no changepoint).
+#' @description Checks whether a given segment is valid (i.e., has no changepoint).
 #' @param y A numeric vector representing a segment of the signal.
-#' @param gamma A numeric threshold passed to the FOCuS method.
+#' @param gamma A numeric value used as a threshold in the validation function and as a penalty for each segment.
 #' @return A logical value indicating whether the segment is considered valid (TRUE if no changepoint detected).
 #' @export
 valid_FOCUS <- function(y, gamma)
