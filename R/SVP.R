@@ -74,17 +74,18 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
           next # skipping the iteration
         }
       }
-        segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
-        candidate_Q <- R[s+1, "Q"] + segment_cost
-        candidate_K <- R[s+1, "K"] + 1
-        
-        if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
-        {
-          best_Q <- candidate_Q
-          best_K <- candidate_K
-          costQ[t] <- best_Q
-          best_s <- s
-        }
+      
+      segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
+      candidate_Q <- R[s+1, "Q"] + segment_cost
+      candidate_K <- R[s+1, "K"] + 1
+      
+      if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
+      {
+        best_Q <- candidate_Q
+        best_K <- candidate_K
+        costQ[t] <- best_Q
+        best_s <- s
+      }
     }
     
     for (s in INDEX)
