@@ -45,20 +45,20 @@ List optimal_partitioning_rcpp(std::vector<double> data, double penalty)
   }
   
   // Cost calculation for each sub-segment
+  
+  double tempQ;
+  
   for (size_t t = 1; t <= n; t++)
   {
     for (size_t s = 0; s < t; s++)
     {
-      // Segment cost [s+1, t]
-      double segment_cost = (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
-      
       // Total cost with beta penalisation
-      double cost = Q[s] + segment_cost + penalty;
+      tempQ = Q[s] + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s) + penalty;
       
       // Minimization
-      if (cost < Q[t])
+      if (tempQ < Q[t])
       {
-        Q[t] = cost;
+        Q[t] = tempQ;
         lastChange[t] = s;
       }
     }
