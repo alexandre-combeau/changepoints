@@ -120,6 +120,7 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
   }
   
   list(changepoints = unname(changepoints),
+       lastIndexSet = rev(INDEX),
        nb           = nb,
        costQ        = costQ,
        R            = R[-1,])
