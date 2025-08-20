@@ -1,4 +1,7 @@
 #include <Rcpp.h>
+#include <vector>
+#include <limits>
+#include <algorithm>
 
 using namespace Rcpp;
 
@@ -10,7 +13,7 @@ using namespace Rcpp;
 //' @param data A numeric vector representing the univariate signal to be segmented.
 //' @param gamma A numeric value used as a threshold in the validation function and as a penalty for each segment.
 //' @param test A function of the form `function(data, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.
-//' @param all_full_validity Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
+//' @param prune_if_unvalid Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
 //' at each time step, it tests whether the candidate segment \code{data[(s+1):t]} is valid using the
 //' user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed
 //' (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid
@@ -33,60 +36,62 @@ using namespace Rcpp;
 //' 
 //' @export
 // [[Rcpp::export]]
-List smallest_valid_partitioning_rcpp(NumericVector data,
+List smallest_valid_partitioning_rcpp(std::vector<double> data,
                                       double gamma,
                                       Function test,
-                                      bool all_full_validity = true)
+                                      bool prune_if_unvalid = true)
 {
-  int n = data.size();
+  size_t n = data.size();
   
   // Initialization of the R matrix
   NumericMatrix R(n + 1, 3); // Q, K, s
-  std::fill(R.begin(), R.end(), R_PosInf);
+  std::fill(R.begin(), R.end(), std::numeric_limits<double>::infinity());
   R(0, 0) = 0.0; // Default value
   R(0, 1) = 0.0; // Default value
   R(0, 2) = 0.0; // Default value
   
-  IntegerVector nb(n); // nb de candidats examinés à chaque t
-  NumericVector costQ(n); // cost vector
+  std::vector<size_t> nb(n);    // nb de candidats examinés à chaque t
+  std::vector<double> costQ(n); // cost vector
   
   // Cumulative sum for optimized calculations
-  NumericVector cs_y(n + 1, 0.0);
-  NumericVector cs_y2(n + 1, 0.0);
-  for (int i = 0; i < n; ++i)
+  std::vector<double> S1(n + 1, 0.0);
+  std::vector<double> S2(n + 1, 0.0);
+  for (size_t i = 0; i < n; ++i)
   {
-    cs_y[i + 1] = cs_y[i] + data[i];
-    cs_y2[i + 1] = cs_y2[i] + data[i] * data[i];
+    S1[i + 1] = S1[i] + data[i];
+    S2[i + 1] = S2[i] + data[i] * data[i];
   }
   
-  std::vector<int> INDEX = {0};
+  std::vector<size_t> INDEX = {0};
   
-  for (int t = 1; t <= n; t++)
+  // declare once outside the loop
+  double best_Q;
+  size_t best_K;
+  size_t best_s;
+  
+  for (size_t t = 1; t <= n; t++)
   {
-    double best_Q = R_PosInf;
-    int best_K = INT_MAX;
-    int best_s = -1;
+    best_Q = std::numeric_limits<double>::infinity();
+    best_K = std::numeric_limits<size_t>::max();
+    best_s = 0;
     
-    std::vector<int> new_INDEX;
+    std::vector<size_t> new_INDEX;
     for (size_t k = 0; k < INDEX.size(); ++k)
     {
-      int s = INDEX[k];
+      size_t s = INDEX[k];
       if (s >= t) continue;
       
       bool valid = true;
-      if (all_full_validity)
+      if (prune_if_unvalid)
       {
-        NumericVector seg = data[Range(s, t - 1)];
+        std::vector<double> seg(data.begin() + s, data.begin() + t);
         valid = as<bool>(test(seg, gamma));
       }
       
       if (valid)
       {
-        double sum_y = cs_y[t] - cs_y[s];
-        double sum_y2 = cs_y2[t] - cs_y2[s];
-        double seg_cost = sum_y2 - (sum_y * sum_y) / (t - s);
-        double candidate_Q = R(s, 0) + seg_cost;
-        int candidate_K = R(s, 1) + 1;
+        double candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
+        size_t candidate_K = R(s, 1) + 1;
         
         if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
         {
@@ -100,26 +105,24 @@ List smallest_valid_partitioning_rcpp(NumericVector data,
     }
     
     // Pruning step
-    std::vector<int> pruned_INDEX;
+    std::vector<size_t> pruned_INDEX;
     for (size_t k = 0; k < new_INDEX.size(); ++k)
     {
-      int s = new_INDEX[k];
+      size_t s = new_INDEX[k];
       if (s == t) continue;
       
-      double sum_y = cs_y[t] - cs_y[s];
-      double sum_y2 = cs_y2[t] - cs_y2[s];
-      double seg_cost = sum_y2 - (sum_y * sum_y) / (t - s);
-      double candidate_Q = R(s, 0) + seg_cost;
-      int candidate_K = R(s, 1);
+      double candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
+      size_t candidate_K = R(s, 1);
       
       if (!(candidate_Q > best_Q && candidate_K == best_K))
       {
         pruned_INDEX.push_back(s);
       }
     }
+    
+    nb[t - 1] = INDEX.size();
     pruned_INDEX.push_back(t);
     INDEX = pruned_INDEX;
-    nb[t - 1] = INDEX.size();
     
     R(t, 0) = best_Q;
     R(t, 1) = best_K;
@@ -127,18 +130,20 @@ List smallest_valid_partitioning_rcpp(NumericVector data,
   }
   
   // Reconstruct changepoints
-  IntegerVector changepoints;
-  int t = n;
+  std::vector<size_t> changepoints;
+  size_t t = n;
   while (t > 0)
   {
-    changepoints.push_front(t);
+    changepoints.push_back(t);
     t = R(t, 2);
   }
+  
+  std::reverse(changepoints.begin(), changepoints.end());
   
   return List::create(
     _["changepoints"] = changepoints,
     _["nb"] = nb,
     _["costQ"] = costQ,
-    _["R"] = R
+    _["R"] = R(Range(1, R.nrow() - 1), Range(0, R.ncol() - 1))
   );
 }
