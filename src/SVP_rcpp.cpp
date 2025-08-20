@@ -68,6 +68,10 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
   double best_Q;
   size_t best_K;
   size_t best_s;
+  size_t s;
+  bool valid;
+  double candidate_Q;
+  size_t candidate_K;
   
   for (size_t t = 1; t <= n; t++)
   {
@@ -78,20 +82,16 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
     std::vector<size_t> new_INDEX;
     for (size_t k = 0; k < INDEX.size(); ++k)
     {
-      size_t s = INDEX[k];
+      s = INDEX[k];
       if (s >= t) continue;
       
-      bool valid = true;
-      if (prune_if_unvalid)
-      {
-        std::vector<double> seg(data.begin() + s, data.begin() + t);
-        valid = as<bool>(test(seg, gamma));
-      }
+      std::vector<double> seg(data.begin() + s, data.begin() + t);
+      valid = as<bool>(test(seg, gamma));
       
       if (valid)
       {
-        double candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
-        size_t candidate_K = R(s, 1) + 1;
+        candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
+        candidate_K = R(s, 1) + 1;
         
         if (candidate_K < best_K || (candidate_K == best_K && candidate_Q < best_Q))
         {
@@ -106,13 +106,14 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
     
     // Pruning step
     std::vector<size_t> pruned_INDEX;
+    
     for (size_t k = 0; k < new_INDEX.size(); ++k)
     {
-      size_t s = new_INDEX[k];
+      s = new_INDEX[k];
       if (s == t) continue;
       
-      double candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
-      size_t candidate_K = R(s, 1);
+      candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
+      candidate_K = R(s, 1);
       
       if (!(candidate_Q > best_Q && candidate_K == best_K))
       {
@@ -131,11 +132,11 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
   
   // Reconstruct changepoints
   std::vector<size_t> changepoints;
-  size_t t = n;
-  while (t > 0)
+  size_t i = n;
+  while (i > 0)
   {
-    changepoints.push_back(t);
-    t = R(t, 2);
+    changepoints.push_back(i);
+    i = R(i, 2);
   }
   
   std::reverse(changepoints.begin(), changepoints.end());
