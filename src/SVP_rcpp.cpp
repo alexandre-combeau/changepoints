@@ -119,6 +119,11 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
       {
         pruned_INDEX.push_back(s);
       }
+      
+      else if (prune_if_unvalid)
+      {
+        pruned_INDEX.push_back(s);
+      }
     }
     
     nb[t - 1] = INDEX.size();
@@ -140,9 +145,11 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
   }
   
   std::reverse(changepoints.begin(), changepoints.end());
+  std::reverse(INDEX.begin(), INDEX.end());
   
   return List::create(
     _["changepoints"] = changepoints,
+    _["lastIndexSet"] = INDEX,
     _["nb"] = nb,
     _["costQ"] = costQ,
     _["R"] = R(Range(1, R.nrow() - 1), Range(0, R.ncol() - 1))
