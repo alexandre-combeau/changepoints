@@ -19,6 +19,7 @@ using namespace Rcpp;
 //' (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid
 //' segment extensions. If FALSE, the algorithm skips this validation and considers all candidate
 //' segments without checking their validity (which can be faster but may return invalid segments).
+//' @param prune_if_PELT Logical.
 //' 
 //' @return A list with the following components :
 //' \describe{
@@ -39,19 +40,18 @@ using namespace Rcpp;
 List smallest_valid_partitioning_rcpp(std::vector<double> data,
                                       double gamma,
                                       Function test,
-                                      bool prune_if_unvalid = true)
+                                      bool prune_if_unvalid = true,
+                                      bool prune_if_PELT = true)
 {
   size_t n = data.size();
   
-  // Initialization of the R matrix
-  NumericMatrix R(n + 1, 3); // Q, K, s
-  std::fill(R.begin(), R.end(), std::numeric_limits<double>::infinity());
+  // Initialization of elements in the return
+  NumericMatrix R(n + 1, 3); // the R matrix (Q, K, s)
   R(0, 0) = 0.0; // Default value
   R(0, 1) = 0.0; // Default value
   R(0, 2) = 0.0; // Default value
   
-  std::vector<size_t> nb(n);    // nb de candidats examinés à chaque t
-  std::vector<double> costQ(n); // cost vector
+  std::vector<size_t> nb(n); // nb of candidates examined at each t
   
   // Cumulative sum for optimized calculations
   std::vector<double> S1(n + 1, 0.0);
@@ -62,34 +62,41 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
     S2[i + 1] = S2[i] + data[i] * data[i];
   }
   
-  std::vector<size_t> INDEX = {0};
-  
   // declare once outside the loop
   double best_Q;
   size_t best_K;
   size_t best_s;
   size_t s;
-  bool valid;
-  double candidate_Q;
-  size_t candidate_K;
+  std::vector<double> seg; // for the validity test
+  bool valid; // for validity test
+  double candidate_Q; // for the lex. comparison
+  size_t candidate_K; // for the lex. comparison
   
-  for (size_t t = 1; t <= n; t++)
+  std::vector<size_t> INDEX = {0};
+  std::vector<size_t> valid_INDEX; // indices that pass the validity test
+  std::vector<size_t> nonpruned_INDEX; // indices not pruned by PELT rule
+  
+  for (size_t t = 1; t < n + 1; t++)
   {
+    nb[t - 1] = INDEX.size();
+    // Initialization
     best_Q = std::numeric_limits<double>::infinity();
     best_K = std::numeric_limits<size_t>::max();
-    best_s = 0;
     
-    std::vector<size_t> new_INDEX;
+    valid_INDEX.clear(); // set to length 0 this vector, fill it with valid indices
+    
     for (size_t k = 0; k < INDEX.size(); ++k)
     {
       s = INDEX[k];
-      if (s >= t) continue;
       
-      std::vector<double> seg(data.begin() + s, data.begin() + t);
-      valid = as<bool>(test(seg, gamma));
+      // test if segment [s,t] is VALID
+      seg.assign(data.begin() + s, data.begin() + t);
+      valid = as<bool>(test(seg, gamma)); // test against the threshold gamma
       
-      if (valid)
+      // if VALID, do the comparisons
+      if (valid == true)
       {
+        valid_INDEX.push_back(s);
         candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
         candidate_K = R(s, 1) + 1;
         
@@ -98,41 +105,49 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
           best_Q = candidate_Q;
           best_K = candidate_K;
           best_s = s;
-          costQ[t - 1] = best_Q;
         }
-        new_INDEX.push_back(s);
       }
     }
     
-    // Pruning step
-    std::vector<size_t> pruned_INDEX;
-    
-    for (size_t k = 0; k < new_INDEX.size(); ++k)
-    {
-      s = new_INDEX[k];
-      if (s == t) continue;
-      
-      candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
-      candidate_K = R(s, 1);
-      
-      if (!(candidate_Q > best_Q && candidate_K == best_K))
-      {
-        pruned_INDEX.push_back(s);
-      }
-      
-      else if (prune_if_unvalid)
-      {
-        pruned_INDEX.push_back(s);
-      }
-    }
-    
-    nb[t - 1] = INDEX.size();
-    pruned_INDEX.push_back(t);
-    INDEX = pruned_INDEX;
-    
+    // write the best answer in R
     R(t, 0) = best_Q;
     R(t, 1) = best_K;
     R(t, 2) = best_s;
+    
+    //
+    //  PRUNING if prune_if_unvalid == true
+    //
+    if (prune_if_unvalid == true)
+    {
+      INDEX.swap(valid_INDEX); // index now contains the valid_INDEX only
+    }
+    
+    //
+    //  PRUNING PELT
+    //
+    if (prune_if_PELT == true)
+    {
+      nonpruned_INDEX.clear(); // set to length 0 this vector, fill it with non pruned indices
+      for (size_t k = 0; k < INDEX.size(); k++)
+      {
+        s = INDEX[k];
+        candidate_Q = R(s, 0) + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s);
+        candidate_K = R(s, 1);
+        
+        //std::cout<< ((candidate_Q <= best_Q) || (candidate_K != best_K)) << std::endl;
+        if (((candidate_Q <= best_Q) || (candidate_K != best_K)))
+        {
+          nonpruned_INDEX.push_back(s);
+        }
+      }
+      nonpruned_INDEX.push_back(t);
+      INDEX.swap(nonpruned_INDEX); // index now contains the nonpruned indices (by PELT SVP)
+    }
+    
+    else
+    {
+      INDEX.push_back(t);
+    }
   }
   
   // Reconstruct changepoints
@@ -151,7 +166,7 @@ List smallest_valid_partitioning_rcpp(std::vector<double> data,
     _["changepoints"] = changepoints,
     _["lastIndexSet"] = INDEX,
     _["nb"] = nb,
-    _["costQ"] = costQ,
+    _["costQ"] = NULL,
     _["R"] = R(Range(1, R.nrow() - 1), Range(0, R.ncol() - 1))
   );
 }
