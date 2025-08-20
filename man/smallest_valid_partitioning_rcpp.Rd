@@ -4,7 +4,7 @@
 \alias{smallest_valid_partitioning_rcpp}
 \title{Smallest Valid Partitioning with Validation and Pruning}
 \usage{
-smallest_valid_partitioning_rcpp(data, gamma, test, all_full_validity = TRUE)
+smallest_valid_partitioning_rcpp(data, gamma, test, prune_if_unvalid = TRUE)
 }
 \arguments{
 \item{data}{A numeric vector representing the univariate signal to be segmented.}
@@ -13,7 +13,7 @@ smallest_valid_partitioning_rcpp(data, gamma, test, all_full_validity = TRUE)
 
 \item{test}{A function of the form `function(data, gamma)` returning TRUE if the segment is valid. Default is `valid_OP`.}
 
-\item{all_full_validity}{Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
+\item{prune_if_unvalid}{Logical. If TRUE (default), the algorithm applies *segment-wise validation*:
 at each time step, it tests whether the candidate segment \code{data[(s+1):t]} is valid using the
 user-defined function \code{test}. If the segment fails the test, the candidate \code{s} is removed
 (pruned) from the set of possible changepoints. This accelerates computation by avoiding invalid

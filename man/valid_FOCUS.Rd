@@ -9,13 +9,13 @@ valid_FOCUS(y, gamma)
 \arguments{
 \item{y}{A numeric vector representing a segment of the signal.}
 
-\item{gamma}{A numeric threshold passed to the FOCuS method.}
+\item{gamma}{A numeric value used as a threshold in the validation function and as a penalty for each segment.}
 }
 \value{
 A logical value indicating whether the segment is considered valid (TRUE if no changepoint detected).
 }
 \description{
-Checks whether a given segment is valid using the FOCuS method (i.e., has no changepoint).
+Checks whether a given segment is valid (i.e., has no changepoint).
 }
 \details{
 Validity Test Based on FOCuS
