@@ -14,6 +14,8 @@ library(aricode)
 #devtools::install_github("gtromano/FOCuS")
 library(FOCuS)
 library(changepoints)
+#devtools::install_github("vrunge/svpChange")
+library(svpChange)
 ```
 
 # Optimal Partitioning using R
