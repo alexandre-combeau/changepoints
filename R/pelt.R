@@ -27,7 +27,7 @@ pelt <- function(data, penalty)
   # Initialize the costs and the changepoints
   Q <- rep(Inf, n + 1)
   Q[1] <- -penalty
-  last_cp <- integer(n + 1)
+  lastChange <- integer(n + 1)
   length_P <- integer(n)
   P <- 1
   
@@ -54,20 +54,20 @@ pelt <- function(data, penalty)
     }
     
     Q[t1]       <- best_cost
-    last_cp[t1] <- arg_min
+    lastChange[t1] <- arg_min
     length_P[t] <- length(P)
     
     # Pruning
     P <- c(P[costs <= Q[t1] + penalty], t1)
   }
   
-  # Backtracking
+  # Changepoints reconstruction (backtracking)
   changepoints <- integer(0)
   i <- n + 1
-  while (last_cp[i] > 1)
+  while (lastChange[i] > 1)
   {
-    changepoints <- c(last_cp[i] - 1, changepoints)
-    i <- last_cp[i]
+    changepoints <- c(lastChange[i] - 1, changepoints)
+    i <- lastChange[i]
   }
   
   changepoints = c(changepoints, n)
