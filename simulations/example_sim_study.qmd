@@ -129,6 +129,10 @@ cp_metrics <- function(cp_true, cp_est, tol = 5) {
 evaluate_method <- function(y, mu_true, cps_true, method, penalty) {
   fit <- cpt.mean(y, penalty = penalty, method = method, Q = 100)
 
+  # add the last point as a changepoint
+  cp_est <- unique(c(cp_est, length(y)))
+  cps_true <- c(cps_true, length(y))
+
   cp_est <- cpts(fit)  # integer vector of estimated CPs
   mu_hat <- rep(param.est(fit)$mean, times = diff(c(0, cp_est, length(y))))
 
