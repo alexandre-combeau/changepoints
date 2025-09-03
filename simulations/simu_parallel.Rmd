@@ -1,0 +1,178 @@
+---
+title: "simu_parallel"
+output: html_document
+---
+
+```{r}
+library(future.apply)
+
+# Plan de parallélisation (multisession pour Windows)
+nbCores <- parallel::detectCores() - 1
+plan(multisession, workers = nbCores)
+
+####################################
+###### Fonction de simulation ######
+####################################
+simu_PELT <- function(n)
+{
+  # Constantes locales
+  penalty <- 2.2 * log(n)
+  gap <- 2
+  # Changepoints relatifs
+  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
+  
+  data <- dataGenerator_1D(
+    chpts      = chpts,
+    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
+    sdNoise    = 1.5
+  )
+  
+  # Chrono avec pruning
+  PELT <- system.time(pelt(data, penalty))[["elapsed"]]
+  
+  # Chrono sans pruning (Rcpp)
+  PELT_Rcpp <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
+  
+  list(n = length(data), PELT = PELT, PELT_Rcpp = PELT_Rcpp)
+}
+
+simu_SVP <- function(n)
+{
+  # Constantes locales
+  penalty <- 3
+  gap <- 2
+  # Changepoints relatifs
+  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
+  
+  data <- dataGenerator_1D(
+    chpts      = chpts,
+    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
+    sdNoise    = 1.5
+  )
+  
+  # Chrono avec pruning
+  SVP <- system.time(SVP(data, penalty, "gaussian_mean"))[["elapsed"]]
+  
+  # Chrono sans pruning (Rcpp)
+  PELT_Rcpp <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
+  
+  list(n = length(data), SVP = SVP, PELT_Rcpp = PELT_Rcpp)
+}
+
+####################################
+###### exécution en parallèle ######
+####################################
+# vecteur de tailles à tester
+start <- 20000
+end   <- 30000
+my_n_vector <- round(10^(seq(log10(start), log10(end), length.out = 10)))
+
+# nombre de répétitions par n
+p <- 20
+
+# lancer toutes les simulations
+results <- future_lapply(my_n_vector, function(n) {
+  replicate(p, simu_SVP(n), simplify = FALSE)
+}, future.seed = TRUE)
+
+# aplatir la liste
+results_flat <- do.call(c, results)
+
+##########################################
+###### mise en data.frame final ##########
+##########################################
+df <- do.call(rbind, lapply(results_flat, as.data.frame))
+
+head(df)
+
+write.csv(df, "C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/timeSIGNAL.csv", row.names = FALSE)
+
+```
+
+```{r}
+######################
+###### packages ######
+######################
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(tidyr)
+
+#####################################
+###### lire et transformer df #######
+#####################################
+MyData <- read.csv("C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/timeSIGNAL.csv")
+
+# Mise au format long (PELT vs PELT_Rcpp)
+df <- MyData %>%
+  pivot_longer(cols = c("SVP", "PELT_Rcpp"),
+               names_to = "method",
+               values_to = "time")
+
+# Nettoyage : retirer NA, Inf, temps nuls ou négatifs
+df <- df %>%
+  filter(is.finite(time), time > 0)
+
+############################################
+###### résumé avec moyenne et quantiles ####
+############################################
+data_summary <- df %>%
+  group_by(n, method) %>%
+  summarise(mean = mean(time, na.rm = TRUE),
+            q1 = quantile(time, 0.025, na.rm = TRUE),
+            q3 = quantile(time, 0.975, na.rm = TRUE),
+            .groups = "drop")
+
+# Limites pour l'axe Y (sécurisé)
+theMin <- min(data_summary$q1[data_summary$q1 > 0], na.rm = TRUE)
+theMax <- max(data_summary$q3[data_summary$q3 > 0], na.rm = TRUE)
+
+##########################################
+###### régressions log-log (scalabilité) #
+##########################################
+lm_results <- df %>%
+  group_by(method) %>%
+  do(model = lm(log(time) ~ log(n), data = .))
+
+################################
+###### PLOT with ggplot2 #######
+################################
+ggplot(data_summary, aes(x = n, y = mean, col = method)) +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, na.rm = TRUE) +
+  scale_x_log10() +
+  scale_y_log10(limits = c(theMin, theMax)) +
+  labs(y = "time in seconds",
+       x = "length of the time series",
+       color = "Méthode",   # titre de la légende
+       shape = "Méthode") +
+  geom_point(size = 2, aes(shape = method)) +
+  geom_errorbar(aes(ymin = q1, ymax = q3), width = .01) +
+  scale_colour_manual(values = c("SVP" = "blue",   "PELT_Rcpp" = "red"),
+                      labels = c("SVP" = paste("SVP slope :", round(coef(lm_results$model[[1]])[2], 2)),
+                                 "PELT_Rcpp" = paste("PELT slope :", round(coef(lm_results$model[[2]])[2], 2)))) +
+  scale_shape_manual(values = c("SVP" = 16,       "PELT_Rcpp" = 17),
+                     labels = c("SVP" = paste("SVP slope :", round(coef(lm_results$model[[1]])[2], 2)),
+                                "PELT_Rcpp" = paste("PELT slope :", round(coef(lm_results$model[[2]])[2], 2)))) +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        axis.title.x = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        legend.position = c(0,1),
+        legend.justification = c(0,1),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = alpha("darkred", 0.2), colour = "NA"),
+        legend.box.background = element_rect(colour = alpha("black", 0.3)))
+
+# Résumés des modèles
+summaries <- lapply(lm_results$model, summary)
+
+# Coefficients (intercept + pente log-log)
+coeffs <- lapply(lm_results$model, coef)
+
+print("=== Coefficients (intercept, slope) ===")
+print(coeffs)
+
+```
+
+
