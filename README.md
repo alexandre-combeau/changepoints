@@ -24,5 +24,5 @@ devtools::install_github("alexandre-combeau/changepoints")
 ## Temps d'exécution pour OP avec Pruning
 ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08)
 
-## Temps
+## Temps d'exécution SVP / PELT
 ![test](https://github.com/user-attachments/assets/7bf22456-a395-4349-b9c3-653367c53c5d)
