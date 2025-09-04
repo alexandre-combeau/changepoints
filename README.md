@@ -1,4 +1,4 @@
-# Changepoints detection in a time series
+![test](https://github.com/user-attachments/assets/838097bc-5eea-402f-85ef-5048d60ce516)![test](https://github.com/user-attachments/assets/38b6b9d8-3519-4aa4-bf62-03c1ab0a6eb4)# Changepoints detection in a time series
 
 A central goal in time-series analysis is to identify the sequence of structural changes underlying the observed data.
 This problem has a long-standing history, with major developments since the mid-twentieth century.
@@ -23,3 +23,6 @@ devtools::install_github("alexandre-combeau/changepoints")
 
 ## Temps d'exécution pour OP avec Pruning
 ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08)
+
+## Temps
+![test](https://github.com/user-attachments/assets/15f9d0ea-fd07-4e17-906d-3c38fc7df0e7)
