@@ -1,4 +1,4 @@
-![test](https://github.com/user-attachments/assets/838097bc-5eea-402f-85ef-5048d60ce516)![test](https://github.com/user-attachments/assets/38b6b9d8-3519-4aa4-bf62-03c1ab0a6eb4)# Changepoints detection in a time series
+# Changepoints detection in a time series
 
 A central goal in time-series analysis is to identify the sequence of structural changes underlying the observed data.
 This problem has a long-standing history, with major developments since the mid-twentieth century.
