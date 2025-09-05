@@ -25,4 +25,5 @@ devtools::install_github("alexandre-combeau/changepoints")
 ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08)
 
 ## Temps d'exécution SVP / PELT
-![test](https://github.com/user-attachments/assets/7bf22456-a395-4349-b9c3-653367c53c5d)
+![svp_pelt](https://github.com/user-attachments/assets/af0bd42e-865a-4abf-bd82-8c9a3727b180)
+
