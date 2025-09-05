@@ -21,7 +21,8 @@ devtools::install_github("alexandre-combeau/changepoints")
 ## Temps d'exécution pour OP sans Pruning
 <!-- ![Execution_Time_OP](https://github.com/user-attachments/assets/2a1f5e1a-ee14-4781-beba-1a59ea38fd7f) -->
 ![OP_time_execution](https://github.com/user-attachments/assets/99c0535a-0245-4262-adcc-1f66ef8d95c1)
-![test](https://github.com/user-attachments/assets/6406f73f-cc4c-4803-90fc-e2552cbbf825)
+![test](https://github.com/user-attachments/assets/ad23f208-496f-4bc3-ad5e-ed9922321adb)
+
 
 
 ## Temps d'exécution pour OP avec Pruning
