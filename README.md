@@ -29,8 +29,6 @@ devtools::install_github("alexandre-combeau/changepoints")
 ![svp_pelt](https://github.com/user-attachments/assets/d8fa062a-10f1-473b-a36e-44131cc50da7)
 
 
-<summary>Cliquer pour dérouler</summary>
-Voici le texte masqué par défaut.
-Tu peux mettre des paragraphes, du code, des images, etc.
-```python
-print("hello world")
+Texte visible
+
+<!-- Ceci est masqué, visible uniquement si on regarde le code source -->
