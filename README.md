@@ -18,14 +18,14 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-## Temps d'exécution pour OP sans Pruning
+## Runtime of the OP algorithm without PELT pruning
 <!-- ![Execution_Time_OP](https://github.com/user-attachments/assets/2a1f5e1a-ee14-4781-beba-1a59ea38fd7f) -->
 <!-- ![OP_time_execution](https://github.com/user-attachments/assets/99c0535a-0245-4262-adcc-1f66ef8d95c1) -->
 ![OP_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/OP_time_execution.svg)
 
-## Temps d'exécution pour OP avec Pruning
+## Runtime of the OP algorithm with PELT pruning
 <!-- ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08) -->
 ![PELT_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/PELT_time_execution.svg)
 
-## Temps d'exécution SVP / PELT
+## Runtime SVP / PELT
 ![svp_pelt](https://github.com/user-attachments/assets/d8fa062a-10f1-473b-a36e-44131cc50da7)
