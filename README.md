@@ -9,7 +9,7 @@ This problem presents two distinct challenges :
 
 For clarity, we focus on the canonical case of detecting changes in the **MEAN** of the data distribution.
 
-Dynamic programming plays a central role in multiple change-point detection, as it provides the optimal segmentation by exactly minimizing a global cost function – typically formulated as a penalized likelihood
+Dynamic programming plays a central role in multiple change-point detection, as it provides the optimal segmentation by exactly minimizing a global cost function – typically formulated as a penalized likelihood $R_t=\{R_t,\ 0\le s<t\}$
 
 ## Installation via the `devtools` package :
 
