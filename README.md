@@ -28,4 +28,4 @@ devtools::install_github("alexandre-combeau/changepoints")
 ![PELT_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/PELT_time_execution.svg)
 
 ## Runtime SVP / PELT
-![svp_pelt](https://github.com/user-attachments/assets/d8fa062a-10f1-473b-a36e-44131cc50da7)
+![SVP_PELT](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT.svg)
