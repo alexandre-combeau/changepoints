@@ -28,5 +28,5 @@ devtools::install_github("alexandre-combeau/changepoints")
 <!-- ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08) -->
 ![PELT_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/PELT_time_execution.svg)
 
-## Runtime SVP / PELT
+## Runtime SVP / PELT with a fixed changepoint density (0.6%)
 ![SVP_PELT](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT.svg)
