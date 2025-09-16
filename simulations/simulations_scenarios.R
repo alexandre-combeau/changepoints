@@ -33,8 +33,8 @@ generate_signal <- function(n, pattern = c("none", "up", "updown", "rand1"), nbS
 
 sims <- expand_grid(pattern = c("none", "up", "updown", "rand1"), rep = 1:50)
 
-full_seqs <- pmap(sims, \(pattern, rep) {
-  mu <- generate_signal(1e3, pattern)
+full_seqs <- pmap(sims, \(pattern, rep, jumpSize = 1) {
+  mu <- generate_signal(2e3, pattern)
   set.seed(rep)
   y <- mu + rnorm(length(mu))
   cps <- c(which(diff(mu) != 0), length(mu))  # true changepoints
@@ -103,7 +103,9 @@ evaluate_method <- function(y, mu_true, cps_true, method, penalty) {
     penalty <- switch(penalty,
       AIC = 2,
       BIC = 2 * log(length(y)),
-      MBIC = 3 * log(length(y))
+      MBIC = 3 * log(length(y)),
+      custom = 2 * log(length(y)/8),
+      custom_2 = 3 * log(length(y)/8)
     )
 
     fit <- SVP(y, penalty, "gaussian_mean", prune_if_unvalid = TRUE)
@@ -136,7 +138,7 @@ evaluate_method <- function(y, mu_true, cps_true, method, penalty) {
     mse = mse_loss(mu_true, mu_hat),
     cps_est = list(cp_est)   # <-- keep as list-column
   ) %>%
-    bind_cols(cp_metrics(cps_true, cp_est, tol = 10))
+    bind_cols(cp_metrics(cps_true, cp_est, tol = length(mu_true) * 0.005))
 }
 
 # --- Compare across all algorithms (coerce cps at the boundary as well) ---
@@ -144,8 +146,8 @@ compare_methods <- function(y, mu, cps, pattern) {
   cps <- as.integer(unlist(cps))         # <- important when coming from transpose(list)
   algos <- expand_grid(
     penalty = c("BIC", "MBIC"),
-    method  = c("PELT", "BinSeg", "SVP")
-  )
+    method  = c("PELT", "BinSeg")
+  ) %>% add_row(penalty = c("custom", "custom_2"), method = "SVP")
 
   results <- pmap(algos, \(penalty, method)
     evaluate_method(y, mu, cps, method, penalty)
