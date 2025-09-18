@@ -32,4 +32,4 @@ devtools::install_github("alexandre-combeau/changepoints")
 ![SVP_PELT](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT.svg)
 
 ## Runtime SVP / PELT when data has no changepoint
-![SVP_PELT_nochange](https://github.com/user-attachments/assets/75160ad1-0516-4ca1-ac67-46b6c88de29e)
+![SVP_PELT_nochange](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT_nochange.svg)
