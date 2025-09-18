@@ -30,3 +30,6 @@ devtools::install_github("alexandre-combeau/changepoints")
 
 ## Runtime SVP / PELT with a fixed changepoint density (0.6%)
 ![SVP_PELT](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT.svg)
+
+## Runtime SVP / PELT when data has no changepoint
+![SVP_PELT_nochange](https://github.com/user-attachments/assets/1151d409-5692-4eaf-b803-76861c6066a6)
