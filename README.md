@@ -22,7 +22,7 @@ devtools::install_github("alexandre-combeau/changepoints")
 ## Runtime of the OP algorithm without PELT pruning
 <!-- ![Execution_Time_OP](https://github.com/user-attachments/assets/2a1f5e1a-ee14-4781-beba-1a59ea38fd7f) -->
 <!-- ![OP_time_execution](https://github.com/user-attachments/assets/99c0535a-0245-4262-adcc-1f66ef8d95c1) -->
-![OP_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/OP_time_execution2.svg)
+![OP_time_execution2](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/OP_time_execution.svg)
 
 ## Runtime of the OP algorithm with PELT pruning
 <!-- ![Execution_Time_PELT](https://github.com/user-attachments/assets/b435a7f7-f7b9-47ce-9268-04037abaac08) -->
