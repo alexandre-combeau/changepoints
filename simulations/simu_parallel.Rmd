@@ -5,74 +5,227 @@ output: html_document
 
 ```{r}
 library(future.apply)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(tidyr)
+```
 
+
+```{r}
 # Plan de parallélisation (multisession pour Windows)
-nbCores <- parallel::detectCores() - 1
+nbCores <- 7
 plan(multisession, workers = nbCores)
+
+cp_metrics <- function(algo = "MonAlgo", cp_true, cp_est, tol = 5)
+{
+  # Force plain integer vectors (handles list-columns safely)
+  cp_true <- as.integer(unlist(cp_true))
+  cp_est  <- as.integer(unlist(cp_est))
+  
+  # Edge cases
+  if (length(cp_true) == 0 && length(cp_est) == 0)
+  {
+    data.frame(
+      Algo = algo,
+      Precision = NA_real_,
+      Recall = NA_real_,
+      F1 = NA_real_
+    )
+  }
+  
+  if (length(cp_true) == 0) # only false alarms
+  {
+    precision <- 0
+    recall    <- NA_real_
+    
+    data.frame(
+      Algo = algo,
+      Precision = precision,
+      Recall = recall,
+      F1 = NA_real_
+    )
+  }
+  if (length(cp_est) == 0) # all misses
+  {
+    precision <- NA_real_
+    recall    <- 0
+    data.frame(
+      Algo = algo,
+      Precision = precision,
+      Recall = recall,
+      F1 = NA_real_
+    )
+  }
+  
+  # Pairwise absolute distances
+  D <- abs(outer(cp_true, cp_est, "-"))
+  
+  # Greedy matching: just pick the closest unmatched estimate within tolerance
+  matched_est <- rep(FALSE, length(cp_est))
+  TP <- 0
+  for (i in seq_along(cp_true))
+  {
+    j <- which.min(D[i, ])
+    if (length(j) && D[i, j] <= tol && !matched_est[j])
+    {
+      TP <- TP + 1
+      matched_est[j] <- TRUE
+    }
+  }
+
+  FP <- sum(!matched_est)
+  FN <- length(cp_true) - TP
+
+  precision <- if ((TP + FP) > 0) TP / (TP + FP) else NA_real_
+  recall    <- if ((TP + FN) > 0) TP / (TP + FN) else NA_real_
+  f1 <- if (!is.na(precision) && !is.na(recall) && (precision + recall) > 0)
+    2 * precision * recall / (precision + recall) else NA_real_
+  
+  data.frame(
+      Algo = algo,
+      Precision = precision,
+      Recall = recall,
+      F1 = f1
+    )
+}
 
 ####################################
 ###### Fonction de simulation ######
 ####################################
+simu_OP <- function(n)
+{
+  # Constantes locales
+  penalty <- 30
+  gap <- 2
+  # Changepoints relatifs
+  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
+  
+  data <- dataGenerator_1D(
+    chpts      = chpts,
+    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
+    sdNoise    = 1.5
+  )
+  
+  # Chrono avec pruning
+  time_R <- system.time(optimal_partitioning(data, penalty))[["elapsed"]]
+  
+  # Chrono sans pruning (Rcpp)
+  time_Rcpp <- system.time(optimal_partitioning_rcpp(data, penalty))[["elapsed"]]
+  
+  list(n = length(data), OP_R = time_R, OP_Rcpp = time_Rcpp)
+}
+
 simu_PELT <- function(n)
 {
   # Constantes locales
-  penalty <- 2.2 * log(n)
-  gap <- 2
-  # Changepoints relatifs
-  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
-  
-  data <- dataGenerator_1D(
-    chpts      = chpts,
-    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
-    sdNoise    = 1.5
-  )
+  gap <- 1
+  chpts = floor(seq(1, n, length.out = floor(5*n/1000)))
+  parameters = rep(c(0,gap), floor(5*n/2000))
+  m <- min(length(chpts), length(parameters))
+  data <- dataGenerator_1D(chpts = chpts[2:m],
+                         parameters = parameters[2:m],
+                         sdNoise = 0.2,
+                         type = "gauss")
+  penalty <- 2 * log(length(data))
   
   # Chrono avec pruning
-  PELT <- system.time(pelt(data, penalty))[["elapsed"]]
+  time_R <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
   
   # Chrono sans pruning (Rcpp)
-  PELT_Rcpp <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
+  time_Rcpp <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
   
-  list(n = length(data), PELT = PELT, PELT_Rcpp = PELT_Rcpp)
+  list(n = length(data), OP_R = time_R, OP_Rcpp = time_Rcpp)
 }
 
-simu_SVP <- function(n)
+simu_SVP_PELT_with_change <- function(n)
 {
   # Constantes locales
-  penalty <- 3
-  gap <- 2
-  # Changepoints relatifs
-  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
-  
-  data <- dataGenerator_1D(
-    chpts      = chpts,
-    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
-    sdNoise    = 1.5
-  )
+  gap <- 1
+  chpts = floor(seq(0, n, length.out = floor(6*n/1000)+1))[-1]
+  parameters = rep(c(0,gap), ceiling(6*n/2000))
+  data <- dataGenerator_1D(chpts = chpts,
+                         parameters = parameters[1:length(chpts)],
+                         sdNoise = 0.2,
+                         type = "gauss")
+  penalty <- 0.1 * log(length(data))
   
   # Chrono avec pruning
-  SVP <- system.time(SVP(data, penalty, "gaussian_mean"))[["elapsed"]]
+  time_SVP <- system.time(SVP(data, penalty, "gaussian_mean"))[["elapsed"]]
   
   # Chrono sans pruning (Rcpp)
-  PELT_Rcpp <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
+  time_PELT <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
   
-  list(n = length(data), SVP = SVP, PELT_Rcpp = PELT_Rcpp)
+  list(n = length(data), SVP_Rcpp = time_SVP, PELT = time_PELT)
+}
+
+simu_SVP_PELT_nochange <- function(n)
+{
+  # Constantes locales
+  penalty <- 1
+  
+  # data
+  data <- rnorm(n, 0, 0.1)
+  
+  # Chrono avec pruning
+  time_SVP <- system.time(SVP(data, penalty, "gaussian_mean"))[["elapsed"]]
+  
+  # Chrono sans pruning (Rcpp)
+  time_PELT <- system.time(pelt_rcpp(data, penalty))[["elapsed"]]
+  
+  list(n = length(data), SVP = time_SVP, PELT_Rcpp = time_PELT)
+}
+
+n <- 20000
+data <- c(rnorm(n/4, 0, 1),
+          rnorm(n/4, 2, 1),
+          rnorm(n/4, 4, 1),
+          rnorm(n/4, 6, 1))
+chpts <- seq(n/4, n, length.out=4)
+  
+penalty_pelt <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+penalty_svp <- 1.5 * log(length(data))
+
+PELT_Rcpp <- pelt_rcpp(data, penalty_pelt)
+SVP_Rcpp <- SVP(data, penalty_svp, "gaussian_mean")
+
+simu_F1_Score_PELT <- function(n)
+{
+  data <- c(rnorm(n/4, 0, 1),
+          rnorm(n/4, 3, 1),
+          rnorm(n/4, 0, 1),
+          rnorm(n/4, 3, 1))
+  chpts <- c(n/4,n/2,3*n/4,n)
+  
+  penalty_pelt <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+  penalty_svp <- log(length(data))
+  
+  PELT_Rcpp <- pelt_rcpp(data, penalty_pelt)
+  SVP_Rcpp <- SVP(data, penalty_svp, "gaussian_mean")
+  
+  PELT_F1 <- cp_metrics(algo = "PELT", chpts, PELT_Rcpp$changepoints, tol = n/1000)$F1
+  SVP_F1  <- cp_metrics(algo = "SVP", chpts, SVP_Rcpp$changepoints, tol = n/1000)$F1
+  
+  list(n = length(data), PELT = PELT_F1, SVP = SVP_F1)
 }
 
 ####################################
 ###### exécution en parallèle ######
 ####################################
+
 # vecteur de tailles à tester
-start <- 20000
-end   <- 30000
-my_n_vector <- round(10^(seq(log10(start), log10(end), length.out = 10)))
+start <- 1000
+end   <- 10000
+# my_n_vector <- round(10^(seq(log10(start), log10(end), length.out = 20)))
+my_n_vector <- round(seq(start, end, length.out = 5))
 
 # nombre de répétitions par n
 p <- 20
 
 # lancer toutes les simulations
 results <- future_lapply(my_n_vector, function(n) {
-  replicate(p, simu_SVP(n), simplify = FALSE)
+  print(paste("Running n =", n))
+  replicate(p, simu_SVP_PELT_nochange(n), simplify = FALSE)
 }, future.seed = TRUE)
 
 # aplatir la liste
@@ -89,29 +242,20 @@ write.csv(df, "C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/t
 
 ```
 
-```{r}
-######################
-###### packages ######
-######################
-library(ggplot2)
-library(cowplot)
-library(dplyr)
-library(tidyr)
-
+```{r ggplot_simulation}
 #####################################
 ###### lire et transformer df #######
 #####################################
-MyData <- read.csv("C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/timeSIGNAL.csv")
+MyData <- read.csv("C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/SVP_PELT.csv")
 
 # Mise au format long (PELT vs PELT_Rcpp)
 df <- MyData %>%
-  pivot_longer(cols = c("SVP", "PELT_Rcpp"),
+  pivot_longer(cols = c(names(MyData)[2], names(MyData)[3]),
                names_to = "method",
                values_to = "time")
 
 # Nettoyage : retirer NA, Inf, temps nuls ou négatifs
-df <- df %>%
-  filter(is.finite(time), time > 0)
+df <- df %>% filter(is.finite(time), time > 0)
 
 ############################################
 ###### résumé avec moyenne et quantiles ####
@@ -133,26 +277,36 @@ theMax <- max(data_summary$q3[data_summary$q3 > 0], na.rm = TRUE)
 lm_results <- df %>%
   group_by(method) %>%
   do(model = lm(log(time) ~ log(n), data = .))
+lm_results$method
+lm_results$model
+
+coef(lm_results$model[[1]])[2] # PELT
+coef(lm_results$model[[2]])[2] # SVP
+time <- data_summary$mean[seq(1,39,by=2)] # PELT
+n <- data_summary$n[seq(1,39,by=2)]
+lm(log(time) ~ log(n))
 
 ################################
 ###### PLOT with ggplot2 #######
 ################################
+svg("C:/Users/alexa/Desktop/2024-2025/LaMME/changepoints/simulations/SVP_PELT.svg", width = 12, height = 8)
+par(bg = "white")
 ggplot(data_summary, aes(x = n, y = mean, col = method)) +
-  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, na.rm = TRUE) +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE, level = 0.95, na.rm = TRUE) +
   scale_x_log10() +
   scale_y_log10(limits = c(theMin, theMax)) +
-  labs(y = "time in seconds",
-       x = "length of the time series",
+  labs(y = "Time in seconds",
+       x = "Length of data",
        color = "Méthode",   # titre de la légende
        shape = "Méthode") +
   geom_point(size = 2, aes(shape = method)) +
   geom_errorbar(aes(ymin = q1, ymax = q3), width = .01) +
-  scale_colour_manual(values = c("SVP" = "blue",   "PELT_Rcpp" = "red"),
-                      labels = c("SVP" = paste("SVP slope :", round(coef(lm_results$model[[1]])[2], 2)),
-                                 "PELT_Rcpp" = paste("PELT slope :", round(coef(lm_results$model[[2]])[2], 2)))) +
-  scale_shape_manual(values = c("SVP" = 16,       "PELT_Rcpp" = 17),
-                     labels = c("SVP" = paste("SVP slope :", round(coef(lm_results$model[[1]])[2], 2)),
-                                "PELT_Rcpp" = paste("PELT slope :", round(coef(lm_results$model[[2]])[2], 2)))) +
+  scale_colour_manual(values = c("PELT" = "blue", "SVP_Rcpp" = "red"),
+                      labels = c("PELT" = paste("PELT slope :", round(coef(lm_results$model[[1]])[2], 4)),
+                                 "SVP_Rcpp" = paste("SVP slope :",  round(coef(lm_results$model[[2]])[2], 4)))) +
+  scale_shape_manual(values = c("PELT" = 16, "SVP_Rcpp" = 16),
+                     labels = c("PELT" = paste("PELT slope :",  round(coef(lm_results$model[[1]])[2], 4)),
+                                "SVP_Rcpp"     = paste("SVP slope :", round(coef(lm_results$model[[2]])[2], 4)))) +
   theme(axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 12),
         legend.text = element_text(size = 12),
@@ -163,6 +317,7 @@ ggplot(data_summary, aes(x = n, y = mean, col = method)) +
         legend.title = element_blank(),
         legend.background = element_rect(fill = alpha("darkred", 0.2), colour = "NA"),
         legend.box.background = element_rect(colour = alpha("black", 0.3)))
+dev.off()
 
 # Résumés des modèles
 summaries <- lapply(lm_results$model, summary)
@@ -174,5 +329,56 @@ print("=== Coefficients (intercept, slope) ===")
 print(coeffs)
 
 ```
+
+```{r ggplot_F1_Score}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Charger les données
+df <- read.csv("~/changepoints/simulations/timeSIGNAL.csv")
+
+# Transformer en format long (utile si plusieurs méthodes dans le CSV)
+df_long <- df %>%
+  pivot_longer(
+    cols = -n,
+    names_to = "method",
+    values_to = "F1"
+  )
+
+# Calculer moyenne et écart-type par méthode et par n
+df_summary <- df_long %>%
+  group_by(n, method) %>%
+  summarise(
+    mean_F1 = mean(F1),
+    sd_F1   = sd(F1),
+    .groups = "drop"
+  )
+
+# Graphique type "points + lignes + barres d’erreur"
+ggplot(df_summary, aes(x = n, y = mean_F1, color = method, group = method)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_errorbar(aes(ymin = mean_F1 - sd_F1, ymax = mean_F1 + sd_F1),
+                width = 0.2, size = 0.8) +
+  labs(x = "Number of samples", y = expression("F1-score (Mean " %+-% "Std)")) +
+  coord_cartesian(xlim = c(start, end), ylim = c(0, 1)) +
+  scale_color_manual(name = "Algorithmes",
+                     values = c("PELT" = "blue", "SVP" = "green"),
+                     labels = c("PELT", "SVP")
+  ) +
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        legend.text = element_text(size = 12),
+        axis.title.x = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        legend.position = c(0.8,0.2),
+        legend.justification = c(0,1),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = alpha("darkred", 0.2), colour = "NA"),
+        legend.box.background = element_rect(colour = alpha("black", 0.3)))
+#theme_minimal(base_size = 14) +
+```
+
 
 
