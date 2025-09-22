@@ -34,6 +34,7 @@ devtools::install_github("alexandre-combeau/changepoints")
 ## Runtime SVP / PELT when data has no changepoint
 ![SVP_PELT_nochange](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT_nochange.svg)
 
+| OP (PELT OFF) | OP (PELT ON) |
+|--------------|------------------|
+| ![OP_time_execution2](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/OP_time_execution2.svg) | ![PELT_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/PELT_time_execution.svg) |
 
-| ![SVP_PELT_nochange](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT_nochange.svg) | ![SVP_PELT_nochange](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT_nochange.svg) |
-|---------------|---------------|
