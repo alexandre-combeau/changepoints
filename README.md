@@ -19,7 +19,7 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-| OP (PELT OFF) | OP (PELT ON) |
+| Runtime of OP | Runtime of PELT |
 |--------------|------------------|
 | ![OP_time_execution2](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/OP_time_execution2.svg) | ![PELT_time_execution](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/PELT_time_execution.svg) |
 
