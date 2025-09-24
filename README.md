@@ -19,7 +19,7 @@ install.packages("devtools")
 devtools::install_github("alexandre-combeau/changepoints")
 ```
 
-| Runtime of OP | Runtime of PELT |
+| Runtime of OP without PELT | Runtime of OP with PELT |
 |--------------|------------------|
 | ![OP_time_execution2](https://github.com/user-attachments/assets/fffea7d0-3146-448b-a6e1-5dab532cb47e) | ![PELT_time_execution](https://github.com/user-attachments/assets/3383cf69-3134-4121-83de-ac8d65a06258) |
 
