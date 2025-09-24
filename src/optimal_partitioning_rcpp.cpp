@@ -30,7 +30,7 @@ List optimal_partitioning_rcpp(std::vector<double> data, double penalty)
   size_t n = data.size();
   
   // Initialize the costs and the changepoints
-  std::vector<double> Q(n + 1, std::numeric_limits<double>::infinity());
+  std::vector<double> Q(n + 1);
   Q[0] = -penalty;
   std::vector<size_t> lastChange(n + 1, 0);
   std::vector<size_t> R(n);
@@ -47,40 +47,41 @@ List optimal_partitioning_rcpp(std::vector<double> data, double penalty)
   // Cost calculation for each sub-segment
   
   double tempQ;
+  double bestQ;
   
-  for (size_t t = 1; t <= n; t++)
+  for (size_t t = 1; t < n + 1; t++)
   {
+    bestQ = std::numeric_limits<double>::infinity();
     for (size_t s = 0; s < t; s++)
     {
       // Total cost with beta penalisation
       tempQ = Q[s] + (S2[t] - S2[s]) - (S1[t] - S1[s]) * (S1[t] - S1[s]) / (t - s) + penalty;
       
       // Minimization
-      if (tempQ < Q[t])
+      if (tempQ < bestQ)
       {
-        Q[t] = tempQ;
+        bestQ = tempQ;
         lastChange[t] = s;
       }
     }
+    Q[t] = bestQ; // we store the minimum cost at time t
   }
   
   // Changepoints reconstruction (backtracking)
-  std::vector<size_t> optimal_cpts;
-  size_t t = n;
-  while (t > 0)
+  std::vector<size_t> changepoints;
+  size_t i = n;
+  while (lastChange[i] > 0)
   {
-    optimal_cpts.push_back(lastChange[t]);
-    t = lastChange[t];
+    changepoints.push_back(lastChange[i]);
+    i = lastChange[i];
   }
-  std::reverse(optimal_cpts.begin(), optimal_cpts.end());
-  optimal_cpts.erase(optimal_cpts.begin());
-  optimal_cpts.push_back(n);
-  
-  std::vector<size_t> last_R(R.rbegin(), R.rend());
+  std::reverse(changepoints.begin(), changepoints.end());
+  changepoints.push_back(n);
   
   return List::create(
-    Named("changepoints") = optimal_cpts,
-    Named("lastIndexSet") = last_R,
-    Named("nb")           = R,
-    Named("costQ")        = std::vector<double>(Q.begin() + 1, Q.end()));
+    _["changepoints"] = changepoints,
+    _["lastIndexSet"] = std::vector<size_t>(R.rbegin(), R.rend()),
+    _["nb"]           = R,
+    _["costQ"]        = std::vector<double>(Q.begin() + 1, Q.end())
+  );
 }

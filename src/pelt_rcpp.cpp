@@ -91,7 +91,7 @@ List pelt_rcpp(std::vector<double> data, double penalty)
     P.swap(newP);
   }
   
-  // Backtracking
+  // Changepoints reconstruction (backtracking)
   std::vector<size_t> changepoints;
   size_t i = n;
   while (lastChange[i] > 0)
@@ -101,11 +101,13 @@ List pelt_rcpp(std::vector<double> data, double penalty)
   }
   std::reverse(changepoints.begin(), changepoints.end());
   changepoints.push_back(n);
+  
   std::reverse(P.begin(), P.end());
   
   return List::create(
-    Named("changepoints") = changepoints,
-    Named("lastIndexSet") = P,
-    Named("nb") = length_P,
-    Named("costQ") = std::vector<double>(Q.begin() + 1, Q.end()));
+    _["changepoints"] = changepoints,
+    _["lastIndexSet"] = P,
+    _["nb"]           = length_P,
+    _["costQ"]        = std::vector<double>(Q.begin() + 1, Q.end())
+  );
 }

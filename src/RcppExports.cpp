@@ -10,31 +10,44 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// smallest_valid_partitioning_rcpp
-List smallest_valid_partitioning_rcpp(NumericVector data, double gamma, Function test, bool all_full_validity);
-RcppExport SEXP _changepoints_smallest_valid_partitioning_rcpp(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP all_full_validitySEXP) {
+// SN
+List SN(std::vector<double> data, int Kmax);
+RcppExport SEXP _changepoints_SN(SEXP dataSEXP, SEXP KmaxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
-    Rcpp::traits::input_parameter< Function >::type test(testSEXP);
-    Rcpp::traits::input_parameter< bool >::type all_full_validity(all_full_validitySEXP);
-    rcpp_result_gen = Rcpp::wrap(smallest_valid_partitioning_rcpp(data, gamma, test, all_full_validity));
+    Rcpp::traits::input_parameter< std::vector<double> >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type Kmax(KmaxSEXP);
+    rcpp_result_gen = Rcpp::wrap(SN(data, Kmax));
     return rcpp_result_gen;
 END_RCPP
 }
-// smallest_valid_partitioning_rcpp_seq
-List smallest_valid_partitioning_rcpp_seq(NumericVector data, double gamma, std::string test, bool all_full_validity);
-RcppExport SEXP _changepoints_smallest_valid_partitioning_rcpp_seq(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP all_full_validitySEXP) {
+// SVP
+List SVP(std::vector<double> data, double gamma, std::string test, bool prune_if_unvalid);
+RcppExport SEXP _changepoints_SVP(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP prune_if_unvalidSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type data(dataSEXP);
     Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< std::string >::type test(testSEXP);
-    Rcpp::traits::input_parameter< bool >::type all_full_validity(all_full_validitySEXP);
-    rcpp_result_gen = Rcpp::wrap(smallest_valid_partitioning_rcpp_seq(data, gamma, test, all_full_validity));
+    Rcpp::traits::input_parameter< bool >::type prune_if_unvalid(prune_if_unvalidSEXP);
+    rcpp_result_gen = Rcpp::wrap(SVP(data, gamma, test, prune_if_unvalid));
+    return rcpp_result_gen;
+END_RCPP
+}
+// svp0
+List svp0(std::vector<double> data, double gamma, Function test, bool prune_if_unvalid, bool prune_if_PELT);
+RcppExport SEXP _changepoints_svp0(SEXP dataSEXP, SEXP gammaSEXP, SEXP testSEXP, SEXP prune_if_unvalidSEXP, SEXP prune_if_PELTSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< Function >::type test(testSEXP);
+    Rcpp::traits::input_parameter< bool >::type prune_if_unvalid(prune_if_unvalidSEXP);
+    Rcpp::traits::input_parameter< bool >::type prune_if_PELT(prune_if_PELTSEXP);
+    rcpp_result_gen = Rcpp::wrap(svp0(data, gamma, test, prune_if_unvalid, prune_if_PELT));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,8 +77,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_changepoints_smallest_valid_partitioning_rcpp", (DL_FUNC) &_changepoints_smallest_valid_partitioning_rcpp, 4},
-    {"_changepoints_smallest_valid_partitioning_rcpp_seq", (DL_FUNC) &_changepoints_smallest_valid_partitioning_rcpp_seq, 4},
+    {"_changepoints_SN", (DL_FUNC) &_changepoints_SN, 2},
+    {"_changepoints_SVP", (DL_FUNC) &_changepoints_SVP, 4},
+    {"_changepoints_svp0", (DL_FUNC) &_changepoints_svp0, 5},
     {"_changepoints_optimal_partitioning_rcpp", (DL_FUNC) &_changepoints_optimal_partitioning_rcpp, 2},
     {"_changepoints_pelt_rcpp", (DL_FUNC) &_changepoints_pelt_rcpp, 2},
     {NULL, NULL, 0}
