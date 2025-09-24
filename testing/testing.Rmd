@@ -13,7 +13,7 @@ library(dust)
 library(aricode)
 #devtools::install_github("gtromano/FOCuS")
 library(FOCuS)
-library(changepoints)
+library(changepoint)
 #devtools::install_github("vrunge/svpChange")
 library(svpChange)
 ```
@@ -34,11 +34,12 @@ penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 OP_R <- optimal_partitioning(data, penalty)
 
 # Visualization
-par(bg = "white")
+# par(bg = "white")
 plot_segmentation(data, OP_R$changepoints, title = "Optimal Partitioning using R")
+cp_metrics("OP_R", chpts, OP_R$changepoints, 5)
 cat("Last cost R :", OP_R$costQ[length(OP_R$costQ)], "\n")
 cat("OP_R$changepoints :", OP_R$changepoints, "\n")
-cat("Expected          :", c(2, 5, 8, 13, 20)*n, "\n")
+cat("Expected          :", chpts, "\n")
 ```
 
 # Optimal Partitioning using Rcpp
@@ -57,11 +58,12 @@ penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
 OP_Rcpp <- optimal_partitioning_rcpp(data, penalty)
 
 # Visualization
-par(bg = "white")
+# par(bg = "white")
 plot_segmentation(data, OP_Rcpp$changepoints, title = "Optimal Partitioning using Rcpp")
+cp_metrics("OP_Rcpp", chpts, OP_Rcpp$changepoints, 10)
 cat("Last cost Rcpp :", OP_Rcpp$costQ[length(OP_Rcpp$costQ)], "\n")
 cat("OP_Rcpp$changepoints :", OP_Rcpp$changepoints, "\n")
-cat("Expected             :", c(2, 5, 8, 13, 20)*n, "\n")
+cat("Expected             :", chpts, "\n")
 ```
 
 # Time execution between OP (R) and OP (Rcpp)
@@ -131,7 +133,8 @@ grid()
 ```{r PELT_R}
 n <- 100
 gap <- 0.5
-data <- dataGenerator_1D(chpts = c(2, 5, 8, 13, 20)*n,
+chpts = c(2, 5, 8, 13, 20)*n
+data <- dataGenerator_1D(chpts = chpts,
                       parameters = c(0,gap,0,gap,0),
                       sdNoise = 0.2,
                       type = "gauss")
@@ -142,30 +145,34 @@ PELT_R <- pelt(data, penalty)
 
 # Visualization
 plot_segmentation(data, PELT_R$changepoints, title = "PELT using R")
+cp_metrics("PELT_R", chpts, PELT_R$changepoints, 5)
 cat("Last cost R :", PELT_R$costQ[length(PELT_R$costQ)], "\n")
 cat("PELT_R$changepoints :", PELT_R$changepoints, "\n")
-cat("Expected            :", c(2, 5, 8, 13, 20)*n, "\n")
+cat("Expected            :", chpts, "\n")
 ```
 
 # Pruned Exact Linear Time using Rcpp
 
 ```{r PELT_Rcpp}
-n <- 100
-gap <- 0.5
-data <- dataGenerator_1D(chpts = c(2, 5, 8, 12, 16, 20)*n,
-                      parameters = c(0,gap,0,gap,0,gap),
-                      sdNoise = 0.2,
-                      type = "gauss")
-penalty <- 2 * log(length(data))
+n <- 1000
+gap <- 0.2
+chpts = floor(seq(0, n, length.out = floor(6*n/1000)+1))[-1]
+parameters = rep(c(0,gap), ceiling(6*n/2000))
+data <- dataGenerator_1D(chpts = chpts,
+                         parameters = parameters[1:length(chpts)],
+                         sdNoise = 0.2,
+                         type = "gauss")
+penalty <- 0.1 * log(length(data))
 
 # PELT Algorithm
 PELT_Rcpp <- pelt_rcpp(data, penalty)
 
 # Visualization
 plot_segmentation(data, PELT_Rcpp$changepoints, title = "PELT using Rcpp")
+cp_metrics("PELT_Rcpp", chpts, PELT_Rcpp$changepoints, 5)
 cat("Last cost PELT_Rcpp :", PELT_Rcpp$costQ[length(PELT_Rcpp$costQ)], "\n")
 cat("PELT_Rcpp$changepoints :", PELT_Rcpp$changepoints, "\n")
-cat("Expected               :", c(2, 5, 8, 12, 16, 20)*n, "\n")
+cat("Expected               :", chpts, "\n")
 ```
 
 # Time execution between PELT (R) and PELT (Rcpp)
@@ -232,26 +239,154 @@ grid()
 
 # Smallest Valid Partitioning
 
-```{r SVP_R}
+```{r svp}
 n <- 1000
-gap <- 10
-chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n
-data <- dataGenerator_1D(chpts = chpts,
-                         parameters = c(0,gap,0,gap,0,gap,0,gap,0),
-                         sdNoise = 1.5)
+gap <- 1
 
-gamma <- 14
-SVP_Range_Rcpp <- smallest_valid_partitioning_rcpp(data,
-                                                   gamma,
-                                                   test = valid_FOCUS,
-                                                   prune_if_unvalid = T,
-                                                   prune_if_PELT = F)
-plot_segmentation(data, SVP_Range_Rcpp$changepoints,
-                  title = paste("SVP_Range_Rcpp, gamma =", round(gamma, 2)))
-SVP_Range_Rcpp$nb
-cat("SVP_Range_Rcpp$changepoints :", SVP_Range_Rcpp$changepoints, "\n")
-cat("Expected                    :", chpts)
+chpts0 <- c(0.1, 0.3, 0.4, 0.45, 0.55, 0.7, 0.75, 0.95, 1) * n
+data <- dataGenerator_1D(chpts = chpts0,
+                         parameters = c(0, gap, 0, gap, 0, gap, 0, gap, 0),
+                         sdNoise    = 1.5)
+gamma <- 10
+plot(data)
+
+# SVP Algorithm
+res_SVP <- SVP(data, gamma, test="gaussian_mean", T)
+cat("res_SVP$changepoints     :", res_SVP$changepoints, "\n")
+Focus <- FOCuS::FOCuS(data[1:250],gamma)$changepoint
+cat("Focus :", Focus, "\n")
+argmax_OP <- valid_OP_argmax(data[1:250], gamma)$argmax
+cat("argmax_OP :", argmax_OP, "\n")
+chpts <- c(0, res_SVP$changepoints)
+res_FOCUS <- c()
+valid_OP_argmax_i <- c()
+for (i in seq_len(length(chpts) - 2))
+{
+  segment_start <- chpts[i] + 1
+  segment_end   <- chpts[i + 2]
+  cat("[", segment_start, ";", segment_end, "]\n")
+  res_FOCUS[i]  <- FOCuS::FOCuS(data[segment_start:segment_end],gamma)$changepoint
+  valid_OP_argmax_i[i] <- valid_OP_argmax(data[segment_start:segment_end],gamma)$argmax
+}
+
+diff(res_SVP$changepoints)
+# Visualization
+plot_segmentation(data, res_SVP$changepoints, title = "SVP")
+cat("res_SVP$changepoints     :", res_SVP$changepoints, "\n")
+cat("res_FOCUS$changepoints   :", c(res_FOCUS, n), "\n")
+cat("valid_OP_argmax_i$argmax :", c(valid_OP_argmax_i, n), "\n")
+cat("Expected                 :", chpts0, "\n")
 ```
+
+
+```{r SVP_execution_time2}
+# Packages nécessaires
+library(future.apply)
+
+# ----------------------
+# Paramètres
+# ----------------------
+start <- 10000
+end   <- 20000
+n_vals <- round(10^(seq(log10(start), log10(end), length.out = 50)))
+
+bench_SVP <- function(n)
+{
+  # Constantes locales (important sous Windows !)
+  gap   <- 0.5
+  gamma <- 18
+  
+  # Changepoints relatifs
+  chpts <- c(0.1, 0.3, 0.4, 0.45, 0.55, 0.7, 0.75, 0.95, 1) * n
+  data <- dataGenerator_1D(
+    chpts      = chpts,
+    parameters = c(0, gap, 0, gap, 0, gap, 0, gap, 0),
+    sdNoise    = 1.5
+  )
+  
+  # Chrono avec pruning
+  SVP_true  <- system.time(SVP(data, gamma, test="gaussian_mean", prune_if_unvalid = TRUE))[["elapsed"]]
+  
+  # Chrono sans pruning
+  SVP_false <- system.time(SVP(data, gamma, test="gaussian_mean", prune_if_unvalid = FALSE))[["elapsed"]]
+  
+  list(n = length(data), SVP_true = SVP_true, SVP_false = SVP_false)
+}
+
+bench_PELT <- function(n)
+{
+  # Constantes locales (important sous Windows !)
+  penalty <- 2.2 * log(n)
+  
+  # Changepoints relatifs
+  chpts <- c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1) * n
+  data <- dataGenerator_1D(
+    chpts      = chpts,
+    parameters = c(0,gap,0,gap,0,gap,0,gap,0),
+    sdNoise    = 1.5
+  )
+
+  # Chrono avec pruning
+  SVP_true <- system.time(pelt(data, penalty))[["elapsed"]]
+
+  # Chrono sans pruning
+  SVP_false <- system.time(pelt(data, penalty))[["elapsed"]]
+
+  list(n = length(data), SVP_true = SVP_true, SVP_false = SVP_false)
+}
+
+# ----------------------
+# Exécution en parallèle
+# ----------------------
+plan(multisession, workers = parallel::detectCores() - 1)
+
+t0 <- Sys.time()
+res <- future_lapply(n_vals, bench_PELT, future.seed = TRUE)
+t1 <- Sys.time()
+cat("temps ecoule :", as.numeric(difftime(t1, t0, units = "secs")))
+
+
+# Assemblage en data.frame
+df <- do.call(rbind, lapply(res, as.data.frame))
+print(df)
+
+# ----------------------
+# Régressions log-log
+# ----------------------
+
+lm_SVP_true  <- lm(log(df$SVP_true)  ~ log(df$n))
+lm_SVP_false <- lm(log(df$SVP_false) ~ log(df$n))
+
+# ----------------------
+# Plot comparatif
+# ----------------------
+
+plot(df$n, df$SVP_true, type = "b", pch = 16, col = "red",
+     log = "xy",
+     xlab = "Length of data (n)",
+     ylab = "Time (s)",
+     main = "SVP: Pruning ON vs Pruning OFF",
+     ylim = range(c(df$SVP_true, df$SVP_false), finite = TRUE),
+     xlim = range(df$n, finite = TRUE))
+lines(df$n, df$SVP_false, type = "b", pch = 17, col = "blue")
+
+# Linear prediction for SVP Pruning
+y_pred_SVP_true <- exp(coef(lm_SVP_true)[1]) * df$n ^ coef(lm_SVP_true)[2]
+lines(df$n, y_pred_SVP_true, col = "red", lty = 2, lwd = 2)
+
+# Linear prediction for SVP NO Pruning
+y_pred_SVP_false <- exp(coef(lm_SVP_false)[1]) * df$n ^ coef(lm_SVP_false)[2]
+lines(df$n, y_pred_SVP_false, col = "blue", lty = 2, lwd = 2)
+
+legend("topleft",
+       legend = c(paste("pelt :", round(coef(lm_SVP_true)[2], 2)),
+                  paste("pelt_rcpp :", round(coef(lm_SVP_false)[2], 2))),
+       col    = c("red", "blue"),
+       pch    = c(16, 17),
+       lty    = c(1, 1))
+grid()
+```
+
 
 ```{r SVP}
 nb_add_data <- 20
@@ -295,10 +430,10 @@ legend("topleft",
 grid()
 ```
 
-```{r SVP}
-n <- 10^(seq(2, 3, length.out = 8))
-temps_R <- numeric(length(n))
-gamma <- 8
+```{r SVP_complexity}
+n <- 10^(seq(1, 3, length.out = 100))
+temps_SVP <- numeric(length(n))
+gamma <- 12
 for (i in 1:length(n))
 {
   data <- c(rnorm(n[i]/2, 5, 1), rnorm(n[i]/2, 0, 1))
@@ -306,30 +441,31 @@ for (i in 1:length(n))
   
   # Execution time
   t0 <- Sys.time()
-  local <- smallest_valid_partitioning(data, gamma, valid_FOCUS)
+  local <- SVP(data, gamma, test = "gaussian_mean", prune_if_unvalid = T)
+  #local <- smallest_valid_partitioning_rcpp(data, gamma, valid_FOCUS, T, T)
   t1 <- Sys.time()
-  temps_R[i] <- as.numeric(difftime(t1, t0, units = "secs"))
+  temps_SVP[i] <- as.numeric(difftime(t1, t0, units = "secs"))
   cat("number of chpts :", length(local$changepoints), "\n")
 }
 
 length_data <- n
 
-lm_R <- lm(log(temps_R) ~ log(length_data))
+lm_SVP <- lm(log(temps_SVP) ~ log(length_data))
 
-plot(length_data, temps_R, type = "b", pch = 16, col = "red",
+plot(length_data, temps_SVP, type = "b", pch = 16, col = "red",
      log = "xy",
      xlab = "Length of data",
      ylab = "Time in seconds",
      main = "Execution Time : SVP FOCuS",
-     ylim = range(temps_R, finite = TRUE),
+     ylim = range(temps_SVP, finite = TRUE),
      xlim = range(length_data, finite = TRUE))
 
 # Linear prediction for R code
-y_pred_R <- exp(coef(lm_R)[1]) * length_data ^ coef(lm_R)[2]
-lines(length_data, y_pred_R, col = "black", lty = 2, lwd = 2)
+y_pred_SVP <- exp(coef(lm_SVP)[1]) * length_data ^ coef(lm_SVP)[2]
+lines(length_data, y_pred_SVP, col = "black", lty = 2, lwd = 2)
 
 legend("topleft",
-       legend = c(paste("Slope :", round(coef(lm_R)[2], 2))),
+       legend = c(paste("Slope :", round(coef(lm_SVP)[2], 2))),
        col    = "red",
        pch    = c(16, 17),
        lty    = c(1, 1))
@@ -338,18 +474,24 @@ grid()
 
 
 ```{r SVP_valid_FOCUS}
-n <- 300
+n <- 10000
 gap <- 10
-data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
+chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n
+data <- dataGenerator_1D(chpts = chpts,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5,
                          type = "gauss")
 plot(data)
-gamma <- 2 * log(length(data)) + 0.5
-res1 <- smallest_valid_partitioning_rcpp(data, gamma, valid_FOCUS)
-abline(v = res1$changepoints, col = "red")
+gamma <- 23
+res1 <- SVP(data, gamma, test = "gaussian_mean", prune_if_unvalid = T)
+res2 <- pelt_rcpp(data, gamma)
 cat("Obtained :", res1$changepoints, "\n")
-cat("Expected :", c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n, "\n")
+cat("Expected :", chpts, "\n")
+abline(v = res1$changepoints, col = "red")
+cp_est <- res1$changepoints
+#plot_segmentation(data, res1$changepoints, title = "Segmentation Plot")
+cp_metrics(chpts, res1$changepoints, tol = 10)
+cp_metrics(chpts, res2$changepoints, tol = 10)
 ```
 
 # SVP_PELT = PELT ?
@@ -586,9 +728,11 @@ lines(length_data, y_pred_Rcpp, col = "green", lty = 2, lwd = 2)
 
 legend("topleft",
        legend = c(paste("SVP slope :", round(coef(lm_R)[2], 2)),
-                  paste("PELT slope :", round(coef(lm_Rcpp)[2], 2))),
+                  paste("OP_PELT slope :", round(coef(lm_Rcpp)[2], 2))),
        col    = c("red", "blue"),
        pch    = c(16, 17),
        lty    = c(1, 1))
 grid()
 ```
+
+
