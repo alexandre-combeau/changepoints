@@ -24,8 +24,7 @@ devtools::install_github("alexandre-combeau/changepoints")
 | ![OP_time_execution2](https://github.com/user-attachments/assets/fffea7d0-3146-448b-a6e1-5dab532cb47e) | ![PELT_time_execution](https://github.com/user-attachments/assets/3383cf69-3134-4121-83de-ac8d65a06258) |
 
 ## Runtime SVP / PELT with a fixed changepoint density (0.6%)
-![SVP_PELT](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT.svg)
+![SVP_PELT](https://github.com/user-attachments/assets/cba4c588-1d61-48c5-a1a6-ed5966fd7f6d)
 
 ## Runtime SVP / PELT when data has no changepoint
-![SVP_PELT_nochange](https://raw.githubusercontent.com/alexandre-combeau/changepoints/refs/heads/main/simulations/SVP_PELT_nochange.svg)
-
+![SVP_PELT_nochange](https://github.com/user-attachments/assets/3535c4f3-47b5-483c-b2ea-37b119b7de95)
