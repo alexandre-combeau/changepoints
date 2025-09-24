@@ -75,7 +75,7 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
         }
       }
       
-      segment_cost <- (cs_y2[t+1]-cs_y2[s+1]) - (cs_y[t+1]-cs_y[s+1])^2 / (t-s)
+      segment_cost <- (cs_y2[t+1] - cs_y2[s+1]) - (cs_y[t+1] - cs_y[s+1])^2 / (t-s)
       candidate_Q <- R[s+1, "Q"] + segment_cost
       candidate_K <- R[s+1, "K"] + 1
       
@@ -115,8 +115,7 @@ smallest_valid_partitioning <- function(data, gamma, test = valid_OP, all_full_v
   while (t > 0)
   {
     changepoints <- c(t, changepoints) # last index of the current segment
-    s_prev <- R[t + 1, "s"]            # back to the previous s
-    t <- s_prev                        # next loop
+    t <- R[t + 1, "s"]                 # back to the previous s for the next loop
   }
   
   list(changepoints = unname(changepoints),

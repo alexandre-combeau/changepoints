@@ -120,3 +120,36 @@ valid_OP <- function(y, gamma)
   }
   return(test = total < (val + gamma))
 }
+
+################################################
+#' Optimal Partitioning Cost Test
+#' 
+#' @title Optimal Partitioning Cost Test
+#' @description Tests whether the total cost of the segment is close enough to the best two-part segmentation cost.
+#' @param y A numeric vector representing a segment of the signal.
+#' @param gamma A numeric threshold for allowable difference between total cost and optimal bipartition.
+#' @return TRUE if the segment cannot be split into two parts with significantly lower cost.
+#' @export
+valid_OP_argmax <- function(y, gamma)
+{
+  len <- length(y)
+  if(len == 1){return(TRUE)}
+  
+  total <- sum((y - mean(y))^2)
+  val <- Inf
+  for(i in 2:len)
+  {
+    segment1 <- y[1:(i-1)]
+    segment2 <- y[i:len]
+    mean_seg1 <- mean(segment1)
+    mean_seg2 <- mean(segment2)
+    temp <- (sum((segment1 - mean_seg1)^2) + sum((segment2 - mean_seg2)^2))
+    if(temp < val)
+    {
+      val <- temp
+      best_i <- i
+    }
+  }
+  return(list(test = total < (val + gamma),
+              argmax = best_i))
+}
