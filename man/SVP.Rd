@@ -37,7 +37,10 @@ A list with the following components :
 }
 }
 \description{
-This function implements a dynamic programming approach to segment a univariate signal into the smallest number of valid segments, according to a user-defined validation function. Each segment must pass a validity test (e.g., based on variance, range, etc.). The algorithm minimizes a quadratic cost subject to this constraint.
+This function implements a dynamic programming approach to segment a univariate signal
+into the smallest number of valid segments, according to a user-defined validation function.
+Each segment must pass a validity test (e.g., based on variance, range, etc.).
+The algorithm minimizes a quadratic cost subject to this constraint.
 }
 \details{
 Smallest Valid Partitioning with FOCUS validity test
