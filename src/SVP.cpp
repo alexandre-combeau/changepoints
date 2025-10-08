@@ -10,7 +10,10 @@ using namespace Rcpp;
 //' Smallest Valid Partitioning with FOCUS validity test
 //'
 //' @title Smallest Valid Partitioning with Validation and Pruning
-//' @description This function implements a dynamic programming approach to segment a univariate signal into the smallest number of valid segments, according to a user-defined validation function. Each segment must pass a validity test (e.g., based on variance, range, etc.). The algorithm minimizes a quadratic cost subject to this constraint.
+//' @description This function implements a dynamic programming approach to segment a univariate signal
+//' into the smallest number of valid segments, according to a user-defined validation function.
+//' Each segment must pass a validity test (e.g., based on variance, range, etc.).
+//' The algorithm minimizes a quadratic cost subject to this constraint.
 //'
 //' @param data A numeric vector representing the univariate signal to be segmented.
 //' @param gamma A numeric value used as a threshold in the validation function and as a penalty for each segment.
@@ -52,12 +55,14 @@ List SVP(std::vector<double> data,
   R(0, 0) = 0.0;
   R(0, 1) = 0.0;
   R(0, 2) = 0.0;
-
-  std::vector<size_t> nb(n); // nb of candidates examined at each t
-
+  
+  // Number of candidates examined at each t
+  std::vector<size_t> nb(n);
+  
   //
   // PREPROCESSING
   //
+  
   // Cumulative sum for optimized calculations
   std::vector<double> S1(n + 1, 0);
   std::vector<double> S2(n + 1, 0);
@@ -66,10 +71,8 @@ List SVP(std::vector<double> data,
     S1[i + 1] = S1[i] + data[i];
     S2[i + 1] = S2[i] + data[i] * data[i];
   }
-
-  //
+  
   // Define a generic initializer for test objects
-  //
   std::function<std::unique_ptr<TestBase>()> newTest;
   if (test == "gaussian_mean")
   {
@@ -91,16 +94,14 @@ List SVP(std::vector<double> data,
   {
     stop("Unknown test type");
   }
-
-  //
-  //
-  //
+  
+  // Initialization of INDEX
   std::vector<size_t> INDEX = {0};
-  std::vector<size_t> valid_INDEX;  // indices that pass the validity test
-
+  std::vector<size_t> valid_INDEX; // indices that pass the validity test
+  
   std::vector<std::unique_ptr<TestBase>> TESTS;
   TESTS.push_back(newTest());
-
+  
   double best_Q;
   size_t best_K;
   size_t best_s = 0;
@@ -114,7 +115,7 @@ List SVP(std::vector<double> data,
     for (size_t t = 1; t < n + 1; ++t)
     {
       nb[t - 1] = INDEX.size();
-
+      
       // Initialization
       best_Q = std::numeric_limits<double>::infinity();
       best_K = std::numeric_limits<size_t>::max();
