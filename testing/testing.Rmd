@@ -7,12 +7,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-#devtools::install_github("vrunge/dust")
-library(dust)
+#devtools::install_github("vrunge/dust0")
+library(dust0)
 #devtools::install_github("jchiquet/aricode")
 library(aricode)
 #devtools::install_github("gtromano/FOCuS")
 library(FOCuS)
+#install.packages("changepoint")
 library(changepoint)
 #devtools::install_github("vrunge/svpChange")
 library(svpChange)
@@ -28,7 +29,7 @@ data <- dataGenerator_1D(chpts = chpts,
                          parameters = c(0,gap,0,gap,0),
                          sdNoise = 1,
                          type = "gauss")
-penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust0::sdDiff(data, "HALL")^2
 
 # OP Algorithm
 OP_R <- optimal_partitioning(data, penalty)
@@ -52,7 +53,7 @@ data <- dataGenerator_1D(chpts = chpts,
                          parameters = c(0,gap,0,gap,0),
                          sdNoise = 1,
                          type = "gauss")
-penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+penalty <- 2 * log(length(data)) * dust0::sdDiff(data, "HALL")^2
 
 # OP Algorithm
 OP_Rcpp <- optimal_partitioning_rcpp(data, penalty)
@@ -84,7 +85,7 @@ for (i in 1:length(n_vals))
                         type = "gauss")
   length_data[i] <- length(data)
   print(length(data))
-  penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+  penalty <- 2 * log(length(data)) * dust0::sdDiff(data, "HALL")^2
   
   # Execution time R
   t0 <- Sys.time()
@@ -502,7 +503,7 @@ n <- 500
 data <- dataGenerator_1D(chpts = c(0.1,0.3,0.4,0.45,0.55,0.7,0.75,0.95,1)*n,
                          parameters = c(0,gap,0,gap,0,gap,0,gap,0),
                          sdNoise = 1.5)
-penalty <- 2 * log(length(data)) * dust::sdDiff(data, method = "HALL")^2
+penalty <- 2 * log(length(data)) * dust0::sdDiff(data, method = "HALL")^2
 pen <- 30
 
 # Expected
@@ -690,7 +691,7 @@ for (i in 1:length(n_vals))
                         type = "gauss")
   length_data[i] <- length(data)
   print(length(data))
-  penalty <- 2 * log(length(data)) * dust::sdDiff(data, "HALL")^2
+  penalty <- 2 * log(length(data)) * dust0::sdDiff(data, "HALL")^2
   gamma <- 10
   
   # Execution time R
