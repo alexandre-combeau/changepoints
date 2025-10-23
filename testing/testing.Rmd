@@ -61,7 +61,7 @@ OP_Rcpp <- optimal_partitioning_rcpp(data, penalty)
 # Visualization
 # par(bg = "white")
 plot_segmentation(data, OP_Rcpp$changepoints, title = "Optimal Partitioning using Rcpp")
-cp_metrics("OP_Rcpp", chpts, OP_Rcpp$changepoints, 10)
+cp_metrics("OP_Rcpp", chpts, OP_Rcpp$changepoints, 5)
 cat("Last cost Rcpp :", OP_Rcpp$costQ[length(OP_Rcpp$costQ)], "\n")
 cat("OP_Rcpp$changepoints :", OP_Rcpp$changepoints, "\n")
 cat("Expected             :", chpts, "\n")
@@ -132,14 +132,15 @@ grid()
 # Pruned Exact Linear Time using R
 
 ```{r PELT_R}
-n <- 100
-gap <- 0.5
-chpts = c(2, 5, 8, 13, 20)*n
+n <- 2000
+gap <- 0.2
+chpts = floor(seq(0, n, length.out = floor(6*n/1000)+1))[-1]
+parameters = rep(c(0,gap), ceiling(6*n/2000))
 data <- dataGenerator_1D(chpts = chpts,
-                      parameters = c(0,gap,0,gap,0),
-                      sdNoise = 0.2,
-                      type = "gauss")
-penalty <- 2 * log(length(data))
+                         parameters = parameters[1:length(chpts)],
+                         sdNoise = 0.2,
+                         type = "gauss")
+penalty <- 0.1 * log(length(data))
 
 # PELT Algorithm
 PELT_R <- pelt(data, penalty)
@@ -155,7 +156,7 @@ cat("Expected            :", chpts, "\n")
 # Pruned Exact Linear Time using Rcpp
 
 ```{r PELT_Rcpp}
-n <- 1000
+n <- 2000
 gap <- 0.2
 chpts = floor(seq(0, n, length.out = floor(6*n/1000)+1))[-1]
 parameters = rep(c(0,gap), ceiling(6*n/2000))
@@ -240,7 +241,7 @@ grid()
 
 # Smallest Valid Partitioning
 
-```{r svp}
+```{r SVP}
 n <- 1000
 gap <- 1
 
